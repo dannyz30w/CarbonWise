@@ -72,8 +72,26 @@ export default function Home() {
           <SavedCalculations
             onLoadCalculation={handleLoadCalculation}
             onCompareCalculations={(calculations) => {
-              // TODO: Implement comparison view
-              console.log("Compare calculations:", calculations)
+              if (calculations.length >= 2) {
+                const comparisonData = calculations.map((calc) => ({
+                  name: calc.name,
+                  date: new Date(calc.date).toLocaleDateString(),
+                  total: (calc.result?.annual?.total || 0) / 1000,
+                  transport: (calc.result?.annual?.transport || 0) / 1000,
+                  energy: (calc.result?.annual?.energy || 0) / 1000,
+                  diet: (calc.result?.annual?.diet || 0) / 1000,
+                  flights: (calc.result?.annual?.flights || 0) / 1000,
+                  shopping: (calc.result?.annual?.shopping || 0) / 1000,
+                }))
+
+                alert(
+                  `Comparison Results:\n\n${comparisonData
+                    .map((calc) => `${calc.name} (${calc.date}): ${calc.total.toFixed(1)} tonnes CO₂e/year`)
+                    .join(
+                      "\n",
+                    )}\n\nDifference: ${Math.abs(comparisonData[0].total - comparisonData[1].total).toFixed(1)} tonnes CO₂e/year`,
+                )
+              }
             }}
           />
         </div>
@@ -138,7 +156,7 @@ export default function Home() {
                 <Leaf className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-foreground">CARBONWISE</span>
-              <span className="text-sm text-muted-foreground ml-2">by [Your Name]</span>
+              <span className="text-sm text-muted-foreground ml-2">by Danny Zheng</span>
               <Sparkles className="w-4 h-4 text-accent animate-pulse" />
             </div>
             <nav className="hidden md:flex items-center gap-6">

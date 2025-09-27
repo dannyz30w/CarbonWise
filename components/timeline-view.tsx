@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts"
 import { CalculationStorage } from "@/lib/storage"
 import { TrendingDown, TrendingUp, Calendar } from "lucide-react"
 import { useMemo } from "react"
@@ -120,39 +120,6 @@ export function TimelineView() {
                   angle: -90,
                   position: "insideLeft",
                   style: { textAnchor: "middle", fill: "hsl(var(--foreground))" },
-                }}
-              />
-              <Tooltip
-                formatter={(value: number, name: string) => [
-                  `${Number(value).toFixed(1)} tonnes CO₂e`,
-                  name === "total"
-                    ? "Total Footprint"
-                    : name === "transport"
-                      ? "Transportation"
-                      : name === "energy"
-                        ? "Energy"
-                        : name === "diet"
-                          ? "Diet"
-                          : name === "flights"
-                            ? "Flights"
-                            : name === "shopping"
-                              ? "Shopping"
-                              : name,
-                ]}
-                labelFormatter={(label, payload) => {
-                  const data = payload?.[0]?.payload
-                  return data ? `${data.name} (${label})` : label
-                }}
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                  color: "hsl(var(--foreground))",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                }}
-                labelStyle={{
-                  color: "hsl(var(--foreground))",
-                  fontWeight: "600",
                 }}
               />
               <Legend
