@@ -7,7 +7,7 @@ import { CalculationWizard } from "@/components/calculation-wizard"
 import { ResultsDashboard } from "@/components/results-dashboard"
 import { SavedCalculations } from "@/components/saved-calculations"
 import { calculateCarbonFootprint, type CarbonInputs, type CarbonResult } from "@/lib/carbon-calculator"
-import { Leaf, Calculator, TrendingDown, Users, Globe, Target, History } from "lucide-react"
+import { Leaf, Calculator, TrendingDown, Users, Globe, Target, History, BookOpen } from "lucide-react"
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<"landing" | "wizard" | "results" | "saved">("landing")
@@ -82,9 +82,14 @@ export default function Home() {
               <span className="text-xl font-bold text-foreground">CARBONWISE</span>
             </div>
             <nav className="hidden md:flex items-center gap-6">
-              <Button variant="ghost" onClick={handleViewSaved}>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleViewSaved}
+                className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20"
+              >
                 <History className="w-4 h-4 mr-2" />
-                Saved Calculations
+                My Progress
               </Button>
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
                 Features
@@ -93,6 +98,7 @@ export default function Home() {
                 About
               </a>
               <a href="#methodology" className="text-muted-foreground hover:text-foreground transition-colors">
+                <BookOpen className="w-4 h-4 inline mr-1" />
                 Methodology
               </a>
             </nav>
@@ -112,6 +118,9 @@ export default function Home() {
                 Calculate your personal carbon footprint with scientific precision. Get personalized recommendations to
                 reduce your environmental impact and contribute to a sustainable future.
               </p>
+              <p className="text-sm text-muted-foreground">
+                Built with real EPA 2024 emission factors • State-specific electricity data • Privacy-first design
+              </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -126,7 +135,7 @@ export default function Home() {
                 onClick={handleViewSaved}
               >
                 <History className="w-5 h-5 mr-2" />
-                View Saved Calculations
+                View My Progress
               </Button>
             </div>
 
@@ -172,7 +181,7 @@ export default function Home() {
                 <h3 className="text-xl font-semibold mb-2">Comprehensive Analysis</h3>
                 <p className="text-muted-foreground">
                   Track emissions across transportation, energy, diet, shopping, waste, and water usage with detailed
-                  breakdowns.
+                  breakdowns and unit labels.
                 </p>
               </CardContent>
             </Card>
@@ -182,9 +191,10 @@ export default function Home() {
                 <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mx-auto mb-4">
                   <TrendingDown className="w-6 h-6 text-accent" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Personalized Recommendations</h3>
+                <h3 className="text-xl font-semibold mb-2">What-If Scenarios</h3>
                 <p className="text-muted-foreground">
-                  Get tailored suggestions ranked by impact and difficulty to maximize your carbon reduction efforts.
+                  Interactive sliders let you preview the impact of different actions before making changes to your
+                  lifestyle.
                 </p>
               </CardContent>
             </Card>
@@ -194,10 +204,9 @@ export default function Home() {
                 <div className="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center mx-auto mb-4">
                   <Target className="w-6 h-6 text-secondary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Science-Based Targets</h3>
+                <h3 className="text-xl font-semibold mb-2">Progress Tracking</h3>
                 <p className="text-muted-foreground">
-                  Compare your footprint against Paris Agreement targets and global averages with real-time
-                  benchmarking.
+                  Save calculations and view your timeline to track improvements and see your carbon reduction journey.
                 </p>
               </CardContent>
             </Card>
@@ -220,9 +229,10 @@ export default function Home() {
                 <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center mx-auto mb-4">
                   <Users className="w-6 h-6 text-destructive" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Household Optimization</h3>
+                <h3 className="text-xl font-semibold mb-2">Scientific Methodology</h3>
                 <p className="text-muted-foreground">
-                  Household size adjustments and shared resource calculations for accurate per-person emissions.
+                  Transparent calculations based on EPA 2024 data with detailed explanations of data sources and
+                  methods.
                 </p>
               </CardContent>
             </Card>
@@ -235,6 +245,57 @@ export default function Home() {
                 <h3 className="text-xl font-semibold mb-2">Privacy First</h3>
                 <p className="text-muted-foreground">
                   All calculations performed locally in your browser. No data collection, no tracking, complete privacy.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      <section id="methodology" className="py-20 px-4 bg-muted/30">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Scientific Foundation</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Our calculations are based on the latest scientific research and authoritative data sources.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="glass">
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                  EPA 2024 Data
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Transportation and energy emission factors from the EPA's 2024 Emission Factors for Greenhouse Gas
+                  Inventories.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass">
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-accent" />
+                  eGRID Database
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  State-specific electricity grid emission factors from EPA's eGRID 2023 database for regional accuracy.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass">
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Target className="w-5 h-5 text-secondary" />
+                  Peer-Reviewed Research
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Food and consumer goods emissions based on life-cycle assessments from scientific literature and FAO
+                  studies.
                 </p>
               </CardContent>
             </Card>
@@ -278,9 +339,9 @@ export default function Home() {
               <h4 className="font-semibold mb-3">Features</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>Carbon Calculator</li>
-                <li>Impact Analysis</li>
-                <li>Recommendations</li>
-                <li>Comparisons</li>
+                <li>What-If Scenarios</li>
+                <li>Progress Tracking</li>
+                <li>Global Comparisons</li>
               </ul>
             </div>
             <div>

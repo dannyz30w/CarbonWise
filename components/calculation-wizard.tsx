@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,12 +10,20 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 import { Slider } from "@/components/ui/slider"
-import { Plus, Minus } from "lucide-react"
+import { Plus, Minus, HelpCircle } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import type { CarbonInputs } from "@/lib/carbon-calculator"
 
 interface CalculationWizardProps {
   onComplete: (inputs: CarbonInputs) => void
   initialInputs?: CarbonInputs
+}
+
+const parsePositiveNumber = (value: string, fallback = 0, max?: number): number => {
+  const num = Number.parseFloat(value)
+  if (!Number.isFinite(num) || num < 0) return fallback
+  if (max !== undefined && num > max) return max
+  return num
 }
 
 const US_STATES = [
@@ -161,6 +171,32 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
     setInputs({ ...inputs, commute: newCommute })
   }
 
+  const LabelWithUnit = ({
+    htmlFor,
+    children,
+    unit,
+    tooltip,
+  }: { htmlFor: string; children: React.ReactNode; unit?: string; tooltip?: string }) => (
+    <div className="flex items-center gap-2">
+      <Label htmlFor={htmlFor} className="text-foreground">
+        {children}
+        {unit && <span className="text-muted-foreground font-normal"> ({unit})</span>}
+      </Label>
+      {tooltip && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p className="text-sm">{tooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+    </div>
+  )
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-8">
@@ -199,7 +235,13 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="householdSize">Household Size</Label>
+                  <LabelWithUnit
+                    htmlFor="householdSize"
+                    unit="people"
+                    tooltip="Number of people living in your household. This helps calculate per-person emissions for shared resources like energy and waste."
+                  >
+                    Household Size
+                  </LabelWithUnit>
                   <Select
                     value={inputs.householdSize.toString()}
                     onValueChange={(value) => setInputs({ ...inputs, householdSize: Number.parseInt(value) })}
@@ -217,7 +259,12 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="state">State/Region</Label>
+                  <LabelWithUnit
+                    htmlFor="state"
+                    tooltip="Your state determines the carbon intensity of your electricity grid. Different states have different mixes of renewable vs fossil fuel energy."
+                  >
+                    State/Region
+                  </LabelWithUnit>
                   <Select value={inputs.state} onValueChange={(value) => setInputs({ ...inputs, state: value })}>
                     <SelectTrigger>
                       <SelectValue />
@@ -259,7 +306,9 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label>Mode of Transport</Label>
+                      <LabelWithUnit tooltip="Choose your primary mode of transportation for this trip">
+                        Mode of Transport
+                      </LabelWithUnit>
                       <Select
                         value={transport.mode}
                         onValueChange={(value) => updateTransportMode(index, "mode", value)}
@@ -285,17 +334,31 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
                     </div>
 
                     <div>
-                      <Label>Distance (miles per trip)</Label>
+                      <LabelWithUnit
+                        unit="miles"
+                        tooltip="One-way distance for this trip. For round trips, enter the one-way distance - we'll calculate the return automatically."
+                      >
+                        Distance per Trip
+                      </LabelWithUnit>
                       <Input
                         type="number"
                         value={transport.miles}
-                        onChange={(e) => updateTransportMode(index, "miles", Number.parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          updateTransportMode(index, "miles", parsePositiveNumber(e.target.value, 0, 500))
+                        }
                         placeholder="e.g., 15"
+                        min="0"
+                        max="500"
                       />
                     </div>
 
                     <div>
-                      <Label>Days per week</Label>
+                      <LabelWithUnit
+                        unit="days"
+                        tooltip="How many days per week do you make this trip? We'll calculate round trips automatically."
+                      >
+                        Days per Week
+                      </LabelWithUnit>
                       <Select
                         value={transport.daysPerWeek?.toString() || "5"}
                         onValueChange={(value) => updateTransportMode(index, "daysPerWeek", Number.parseInt(value))}
@@ -322,13 +385,21 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
           {currentStep === 2 && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="shortFlights">Short flights (&lt;300 miles) per year</Label>
+                <LabelWithUnit
+                  htmlFor="shortFlights"
+                  unit="flights/year"
+                  tooltip="Flights under 300 miles, typically regional or short domestic flights. Each flight counts as one-way."
+                >
+                  Short Flights (&lt;300 miles)
+                </LabelWithUnit>
                 <Input
                   id="shortFlights"
                   type="number"
                   placeholder="e.g., 2"
+                  min="0"
+                  max="50"
                   onChange={(e) => {
-                    const trips = Number.parseInt(e.target.value) || 0
+                    const trips = parsePositiveNumber(e.target.value, 0, 50)
                     const newFlights = [...inputs.flights]
                     const existingIndex = newFlights.findIndex((f) => f.distance === 250)
                     if (existingIndex >= 0) {
@@ -341,13 +412,21 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
                 />
               </div>
               <div>
-                <Label htmlFor="mediumFlights">Medium flights (300-2300 miles) per year</Label>
+                <LabelWithUnit
+                  htmlFor="mediumFlights"
+                  unit="flights/year"
+                  tooltip="Medium-haul flights between 300-2300 miles, typically cross-country domestic flights."
+                >
+                  Medium Flights (300-2300 miles)
+                </LabelWithUnit>
                 <Input
                   id="mediumFlights"
                   type="number"
                   placeholder="e.g., 1"
+                  min="0"
+                  max="20"
                   onChange={(e) => {
-                    const trips = Number.parseInt(e.target.value) || 0
+                    const trips = parsePositiveNumber(e.target.value, 0, 20)
                     const newFlights = [...inputs.flights]
                     const existingIndex = newFlights.findIndex((f) => f.distance === 1000)
                     if (existingIndex >= 0) {
@@ -360,13 +439,21 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
                 />
               </div>
               <div>
-                <Label htmlFor="longFlights">Long flights (&gt;2300 miles) per year</Label>
+                <LabelWithUnit
+                  htmlFor="longFlights"
+                  unit="flights/year"
+                  tooltip="Long-haul flights over 2300 miles, typically international or transcontinental flights."
+                >
+                  Long Flights (&gt;2300 miles)
+                </LabelWithUnit>
                 <Input
                   id="longFlights"
                   type="number"
                   placeholder="e.g., 1"
+                  min="0"
+                  max="10"
                   onChange={(e) => {
-                    const trips = Number.parseInt(e.target.value) || 0
+                    const trips = parsePositiveNumber(e.target.value, 0, 10)
                     const newFlights = [...inputs.flights]
                     const existingIndex = newFlights.findIndex((f) => f.distance === 3000)
                     if (existingIndex >= 0) {
@@ -385,7 +472,9 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
           {currentStep === 3 && (
             <div className="space-y-6">
               <div>
-                <Label>Overall Diet Type</Label>
+                <LabelWithUnit tooltip="Your overall dietary pattern affects your carbon footprint significantly. Meat production, especially beef, has high emissions.">
+                  Overall Diet Type
+                </LabelWithUnit>
                 <Select
                   value={inputs.dietProfile}
                   onValueChange={(value) => setInputs({ ...inputs, dietProfile: value as any })}
@@ -407,7 +496,12 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
               {inputs.dietProfile !== "vegan" && inputs.dietProfile !== "vegetarian" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label>Beef servings per week: {inputs.dietDetails?.beefServingsPerWeek || 0}</Label>
+                    <LabelWithUnit
+                      unit="servings/week"
+                      tooltip="Beef has the highest carbon footprint of all foods. One serving = 3-4 oz (85-113g)."
+                    >
+                      Beef Servings: {inputs.dietDetails?.beefServingsPerWeek || 0}
+                    </LabelWithUnit>
                     <Slider
                       value={[inputs.dietDetails?.beefServingsPerWeek || 0]}
                       onValueChange={([value]) =>
@@ -423,7 +517,12 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
                   </div>
 
                   <div>
-                    <Label>Chicken servings per week: {inputs.dietDetails?.chickenServingsPerWeek || 0}</Label>
+                    <LabelWithUnit
+                      unit="servings/week"
+                      tooltip="Chicken has a lower carbon footprint than red meat. One serving = 3-4 oz (85-113g)."
+                    >
+                      Chicken Servings: {inputs.dietDetails?.chickenServingsPerWeek || 0}
+                    </LabelWithUnit>
                     <Slider
                       value={[inputs.dietDetails?.chickenServingsPerWeek || 0]}
                       onValueChange={([value]) =>
@@ -442,7 +541,12 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label>Local/seasonal food: {inputs.dietDetails?.localFoodPercent || 0}%</Label>
+                  <LabelWithUnit
+                    unit="%"
+                    tooltip="Local and seasonal foods have lower transportation emissions. Includes farmers markets, local farms, and seasonal produce."
+                  >
+                    Local/Seasonal Food: {inputs.dietDetails?.localFoodPercent || 0}%
+                  </LabelWithUnit>
                   <Slider
                     value={[inputs.dietDetails?.localFoodPercent || 0]}
                     onValueChange={([value]) =>
@@ -458,7 +562,12 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
                 </div>
 
                 <div>
-                  <Label>Food waste: {inputs.dietDetails?.foodWastePercent || 0}%</Label>
+                  <LabelWithUnit
+                    unit="%"
+                    tooltip="Food waste generates methane in landfills. Reducing waste is one of the most impactful actions you can take."
+                  >
+                    Food Waste: {inputs.dietDetails?.foodWastePercent || 0}%
+                  </LabelWithUnit>
                   <Slider
                     value={[inputs.dietDetails?.foodWastePercent || 0]}
                     onValueChange={([value]) =>
@@ -480,31 +589,47 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
           {currentStep === 4 && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="electricity">Monthly electricity usage (kWh)</Label>
+                <LabelWithUnit
+                  htmlFor="electricity"
+                  unit="kWh/month"
+                  tooltip="Check your electricity bill for kWh usage. Average US household uses 877 kWh/month. This will be adjusted for your household size."
+                >
+                  Monthly Electricity Usage
+                </LabelWithUnit>
                 <Input
                   id="electricity"
                   type="number"
                   placeholder="e.g., 800"
                   value={inputs.energy.electricityKwh}
+                  min="0"
+                  max="5000"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      energy: { ...inputs.energy, electricityKwh: Number.parseFloat(e.target.value) || 0 },
+                      energy: { ...inputs.energy, electricityKwh: parsePositiveNumber(e.target.value, 0, 5000) },
                     })
                   }
                 />
               </div>
               <div>
-                <Label htmlFor="gas">Monthly natural gas usage (therms)</Label>
+                <LabelWithUnit
+                  htmlFor="gas"
+                  unit="therms/month"
+                  tooltip="Natural gas usage from your utility bill. One therm = 100,000 BTU. Average US household uses 40-80 therms/month."
+                >
+                  Monthly Natural Gas Usage
+                </LabelWithUnit>
                 <Input
                   id="gas"
                   type="number"
                   placeholder="e.g., 50"
                   value={inputs.energy.naturalGasTherms}
+                  min="0"
+                  max="500"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      energy: { ...inputs.energy, naturalGasTherms: Number.parseFloat(e.target.value) || 0 },
+                      energy: { ...inputs.energy, naturalGasTherms: parsePositiveNumber(e.target.value, 0, 500) },
                     })
                   }
                 />
@@ -516,46 +641,70 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
           {currentStep === 5 && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="clothing">Annual clothing spending ($)</Label>
+                <LabelWithUnit
+                  htmlFor="clothing"
+                  unit="$/year"
+                  tooltip="Annual spending on new clothing. Fast fashion has higher emissions than quality, durable clothing."
+                >
+                  Annual Clothing Spending
+                </LabelWithUnit>
                 <Input
                   id="clothing"
                   type="number"
                   placeholder="e.g., 500"
                   value={inputs.shopping.clothingSpend}
+                  min="0"
+                  max="10000"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      shopping: { ...inputs.shopping, clothingSpend: Number.parseFloat(e.target.value) || 0 },
+                      shopping: { ...inputs.shopping, clothingSpend: parsePositiveNumber(e.target.value, 0, 10000) },
                     })
                   }
                 />
               </div>
               <div>
-                <Label htmlFor="electronics">Annual electronics spending ($)</Label>
+                <LabelWithUnit
+                  htmlFor="electronics"
+                  unit="$/year"
+                  tooltip="Spending on phones, computers, TVs, and other electronics. Manufacturing electronics has high carbon intensity."
+                >
+                  Annual Electronics Spending
+                </LabelWithUnit>
                 <Input
                   id="electronics"
                   type="number"
                   placeholder="e.g., 800"
                   value={inputs.shopping.electronicsSpend}
+                  min="0"
+                  max="20000"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      shopping: { ...inputs.shopping, electronicsSpend: Number.parseFloat(e.target.value) || 0 },
+                      shopping: { ...inputs.shopping, electronicsSpend: parsePositiveNumber(e.target.value, 0, 20000) },
                     })
                   }
                 />
               </div>
               <div>
-                <Label htmlFor="general">Annual general shopping ($)</Label>
+                <LabelWithUnit
+                  htmlFor="general"
+                  unit="$/year"
+                  tooltip="Other purchases including furniture, home goods, books, and miscellaneous items."
+                >
+                  Annual General Shopping
+                </LabelWithUnit>
                 <Input
                   id="general"
                   type="number"
                   placeholder="e.g., 2000"
                   value={inputs.shopping.generalSpend}
+                  min="0"
+                  max="50000"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      shopping: { ...inputs.shopping, generalSpend: Number.parseFloat(e.target.value) || 0 },
+                      shopping: { ...inputs.shopping, generalSpend: parsePositiveNumber(e.target.value, 0, 50000) },
                     })
                   }
                 />
@@ -567,46 +716,70 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
           {currentStep === 6 && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="wasteTotal">Weekly waste (kg)</Label>
+                <LabelWithUnit
+                  htmlFor="wasteTotal"
+                  unit="kg/week"
+                  tooltip="Total household waste including all trash, recycling, and compost. Average US household generates 30-50 kg/week."
+                >
+                  Weekly Waste Generation
+                </LabelWithUnit>
                 <Input
                   id="wasteTotal"
                   type="number"
                   placeholder="e.g., 10"
                   value={inputs.waste.totalKg}
+                  min="0"
+                  max="200"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      waste: { ...inputs.waste, totalKg: Number.parseFloat(e.target.value) || 0 },
+                      waste: { ...inputs.waste, totalKg: parsePositiveNumber(e.target.value, 0, 200) },
                     })
                   }
                 />
               </div>
               <div>
-                <Label htmlFor="recycle">Recycling percentage (%)</Label>
+                <LabelWithUnit
+                  htmlFor="recycle"
+                  unit="%"
+                  tooltip="Percentage of waste that gets recycled. Recycling reduces emissions by avoiding virgin material production."
+                >
+                  Recycling Percentage
+                </LabelWithUnit>
                 <Input
                   id="recycle"
                   type="number"
                   placeholder="e.g., 30"
                   value={inputs.waste.recyclePercent}
+                  min="0"
+                  max="100"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      waste: { ...inputs.waste, recyclePercent: Number.parseFloat(e.target.value) || 0 },
+                      waste: { ...inputs.waste, recyclePercent: parsePositiveNumber(e.target.value, 0, 100) },
                     })
                   }
                 />
               </div>
               <div>
-                <Label htmlFor="compost">Composting percentage (%)</Label>
+                <LabelWithUnit
+                  htmlFor="compost"
+                  unit="%"
+                  tooltip="Percentage of organic waste that gets composted. Composting prevents methane emissions from landfills."
+                >
+                  Composting Percentage
+                </LabelWithUnit>
                 <Input
                   id="compost"
                   type="number"
                   placeholder="e.g., 20"
                   value={inputs.waste.compostPercent}
+                  min="0"
+                  max="100"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      waste: { ...inputs.waste, compostPercent: Number.parseFloat(e.target.value) || 0 },
+                      waste: { ...inputs.waste, compostPercent: parsePositiveNumber(e.target.value, 0, 100) },
                     })
                   }
                 />
@@ -618,46 +791,70 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
           {currentStep === 7 && (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="tapWater">Daily tap water consumption (liters)</Label>
+                <LabelWithUnit
+                  htmlFor="tapWater"
+                  unit="liters/day"
+                  tooltip="Daily tap water consumption including drinking, cooking, and other uses. Average person uses 150-300 liters/day."
+                >
+                  Daily Tap Water Consumption
+                </LabelWithUnit>
                 <Input
                   id="tapWater"
                   type="number"
                   placeholder="e.g., 150"
                   value={inputs.water.tapLiters}
+                  min="0"
+                  max="1000"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      water: { ...inputs.water, tapLiters: Number.parseFloat(e.target.value) || 0 },
+                      water: { ...inputs.water, tapLiters: parsePositiveNumber(e.target.value, 0, 1000) },
                     })
                   }
                 />
               </div>
               <div>
-                <Label htmlFor="bottledWater">Daily bottled water (liters)</Label>
+                <LabelWithUnit
+                  htmlFor="bottledWater"
+                  unit="liters/day"
+                  tooltip="Bottled water has 1000x higher carbon footprint than tap water due to plastic production and transportation."
+                >
+                  Daily Bottled Water
+                </LabelWithUnit>
                 <Input
                   id="bottledWater"
                   type="number"
                   placeholder="e.g., 1"
                   value={inputs.water.bottledLiters}
+                  min="0"
+                  max="20"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      water: { ...inputs.water, bottledLiters: Number.parseFloat(e.target.value) || 0 },
+                      water: { ...inputs.water, bottledLiters: parsePositiveNumber(e.target.value, 0, 20) },
                     })
                   }
                 />
               </div>
               <div>
-                <Label htmlFor="shower">Daily shower time (minutes)</Label>
+                <LabelWithUnit
+                  htmlFor="shower"
+                  unit="minutes/day"
+                  tooltip="Daily shower time. Heating water for showers is energy-intensive. Average shower is 8-10 minutes."
+                >
+                  Daily Shower Time
+                </LabelWithUnit>
                 <Input
                   id="shower"
                   type="number"
                   placeholder="e.g., 10"
                   value={inputs.water.showerMinutes}
+                  min="0"
+                  max="60"
                   onChange={(e) =>
                     setInputs({
                       ...inputs,
-                      water: { ...inputs.water, showerMinutes: Number.parseFloat(e.target.value) || 0 },
+                      water: { ...inputs.water, showerMinutes: parsePositiveNumber(e.target.value, 0, 60) },
                     })
                   }
                 />

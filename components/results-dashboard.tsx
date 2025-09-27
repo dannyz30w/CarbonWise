@@ -6,17 +6,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useState } from "react"
-import type { CarbonResult } from "@/lib/carbon-calculator"
+import type { CarbonResult, CarbonInputs } from "@/lib/carbon-calculator"
 import { CarbonMeter } from "./carbon-meter"
 import { WorldMap } from "./world-map"
+import { WhatIfSliders } from "./what-if-sliders"
 import { CalculationStorage } from "@/lib/storage"
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
-import { TrendingDown, TrendingUp, Target, Lightbulb, Share2, Download, Save } from "lucide-react"
+import { TrendingDown, TrendingUp, Target, Lightbulb, Share2, Download, Save, BookOpen } from "lucide-react"
 
 interface ResultsDashboardProps {
   result: CarbonResult
   onReset: () => void
-  inputs: any
+  inputs: CarbonInputs
 }
 
 const COLORS = ["#10B981", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4"]
@@ -24,6 +25,7 @@ const COLORS = ["#10B981", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"
 export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardProps) {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
   const [calculationName, setCalculationName] = useState("")
+  const [showMethodology, setShowMethodology] = useState(false)
 
   const pieData = [
     { name: "Transportation", value: result.annual.transport, color: COLORS[0] },
@@ -74,7 +76,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
       <text
         x={x}
         y={y}
-        fill="var(--color-foreground)"
+        fill="hsl(var(--foreground))"
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
         fontSize="12"
@@ -96,6 +98,17 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
           Based on your lifestyle inputs, here's your estimated annual carbon footprint and personalized recommendations
           for reduction.
         </p>
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowMethodology(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <BookOpen className="w-4 h-4 mr-2" />
+            View Methodology & Data Sources
+          </Button>
+        </div>
       </div>
 
       {/* Main Metrics */}
@@ -131,6 +144,9 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
         </Card>
       </div>
 
+      {/* What-If Sliders */}
+      <WhatIfSliders originalInputs={inputs} originalResult={result} />
+
       {/* Breakdown Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="glass">
@@ -158,10 +174,10 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
                 <Tooltip
                   formatter={(value: number) => [`${value.toFixed(0)} kg CO₂e`, "Annual Emissions"]}
                   contentStyle={{
-                    backgroundColor: "var(--color-card)",
-                    border: "1px solid var(--color-border)",
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
-                    color: "var(--color-foreground)",
+                    color: "hsl(var(--foreground))",
                   }}
                 />
               </PieChart>
@@ -177,19 +193,19 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={comparisonData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis dataKey="name" tick={{ fill: "var(--color-foreground)", fontSize: 12 }} />
-                <YAxis tick={{ fill: "var(--color-foreground)", fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
+                <YAxis tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
                 <Tooltip
                   formatter={(value: number) => [`${value.toFixed(0)} kg CO₂e`, "Annual Emissions"]}
                   contentStyle={{
-                    backgroundColor: "var(--color-card)",
-                    border: "1px solid var(--color-border)",
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
-                    color: "var(--color-foreground)",
+                    color: "hsl(var(--foreground))",
                   }}
                 />
-                <Bar dataKey="value" fill="var(--color-primary)" />
+                <Bar dataKey="value" fill="hsl(var(--primary))" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -209,7 +225,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
               <div>
-                <div className="font-medium">vs US Average</div>
+                <div className="font-medium text-foreground">vs US Average</div>
                 <div className="text-sm text-muted-foreground">16.0 tonnes CO₂e/year</div>
               </div>
               <div className="flex items-center gap-2">
@@ -223,7 +239,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
 
             <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
               <div>
-                <div className="font-medium">vs Global Average</div>
+                <div className="font-medium text-foreground">vs Global Average</div>
                 <div className="text-sm text-muted-foreground">4.8 tonnes CO₂e/year</div>
               </div>
               <div className="flex items-center gap-2">
@@ -237,7 +253,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
 
             <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
               <div>
-                <div className="font-medium">vs Paris Target</div>
+                <div className="font-medium text-foreground">vs Paris Target</div>
                 <div className="text-sm text-muted-foreground">2.3 tonnes CO₂e/year</div>
               </div>
               <div className="flex items-center gap-2">
@@ -282,7 +298,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
                       {suggestion.difficulty}
                     </Badge>
                   </div>
-                  <div className="font-medium mb-1">{suggestion.action}</div>
+                  <div className="font-medium mb-1 text-foreground">{suggestion.action}</div>
                   <div className="text-sm text-muted-foreground">
                     Potential savings:{" "}
                     <span className="font-medium text-green-600">
@@ -304,24 +320,29 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
 
         <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="animate-pulse-green">
+            <Button className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
               <Save className="w-4 h-4 mr-2" />
-              Save Calculation
+              Save This Calculation
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Save Your Calculation</DialogTitle>
+              <DialogTitle>Save Your Carbon Footprint Calculation</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <Input
-                placeholder="Enter a name for this calculation..."
-                value={calculationName}
-                onChange={(e) => setCalculationName(e.target.value)}
-              />
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Give this calculation a memorable name to track your progress over time.
+                </p>
+                <Input
+                  placeholder="e.g., 'January 2025 - Before Changes'"
+                  value={calculationName}
+                  onChange={(e) => setCalculationName(e.target.value)}
+                />
+              </div>
               <div className="flex gap-2">
                 <Button onClick={saveCalculation} disabled={!calculationName.trim()}>
-                  Save
+                  Save Calculation
                 </Button>
                 <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
                   Cancel
@@ -340,6 +361,73 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
           Export Data
         </Button>
       </div>
+
+      <Dialog open={showMethodology} onOpenChange={setShowMethodology}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Methodology & Data Sources</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 text-sm">
+            <div>
+              <h3 className="font-semibold mb-2">Scientific Methodology</h3>
+              <p className="text-muted-foreground">
+                CARBONWISE uses the latest EPA emission factors (2024) and internationally recognized methodologies for
+                calculating personal carbon footprints. All calculations follow the GHG Protocol standards and are based
+                on life-cycle assessments.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-2">Data Sources</h3>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>
+                  • <strong>Transportation:</strong> EPA 2024 Emission Factors for Greenhouse Gas Inventories
+                </li>
+                <li>
+                  • <strong>Electricity:</strong> eGRID 2023 database with state-specific grid factors
+                </li>
+                <li>
+                  • <strong>Food:</strong> FAO studies and peer-reviewed LCA research
+                </li>
+                <li>
+                  • <strong>Consumer goods:</strong> DEFRA and EPA lifecycle emission factors
+                </li>
+                <li>
+                  • <strong>Waste:</strong> EPA WARM model for waste management emissions
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-2">Calculation Approach</h3>
+              <p className="text-muted-foreground">
+                We use the formula: <strong>Emissions = Activity Data × Emission Factor</strong>
+              </p>
+              <p className="text-muted-foreground mt-2">
+                All results are adjusted for household size and include both direct and indirect emissions. Regional
+                variations in electricity grid composition are accounted for using state-specific factors.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-2">Accuracy & Limitations</h3>
+              <p className="text-muted-foreground">
+                Personal carbon calculators provide estimates based on average emission factors. Actual emissions may
+                vary based on specific products, behaviors, and local conditions. Results are intended for educational
+                purposes and relative comparisons.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-2">Privacy & Data</h3>
+              <p className="text-muted-foreground">
+                All calculations are performed locally in your browser. No personal data is transmitted to external
+                servers. Saved calculations are stored locally on your device only.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
