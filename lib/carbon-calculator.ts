@@ -21,6 +21,19 @@ export interface CarbonInputs {
 
   // Diet
   dietProfile: keyof typeof DIET_PROFILES
+  dietDetails?: {
+    beefServingsPerWeek: number
+    porkServingsPerWeek: number
+    chickenServingsPerWeek: number
+    fishServingsPerWeek: number
+    lambServingsPerWeek: number
+    dairyServingsPerDay: number
+    eggsPerWeek: number
+    localFoodPercent: number
+    organicFoodPercent: number
+    processedFoodPercent: number
+    foodWastePercent: number
+  }
 
   // Energy (monthly)
   energy: {
@@ -29,12 +42,30 @@ export interface CarbonInputs {
     heatingOilGallons: number
     propaneGallons: number
   }
+  energyDetails?: {
+    homeType: string
+    homeSize: number
+    heatingType: string
+    coolingType: string
+    waterHeaterType: string
+    renewablePercent: number
+    energyEfficiencyRating: string
+  }
 
   // Shopping (annual)
   shopping: {
     clothingSpend: number
     electronicsSpend: number
     generalSpend: number
+  }
+  shoppingDetails?: {
+    newClothingItems: number
+    secondhandClothingPercent: number
+    electronicsReplacementYears: number
+    carReplacementYears: number
+    repairVsReplacePercent: number
+    packagesPerMonth: number
+    localShoppingPercent: number
   }
 
   // Waste (weekly)
@@ -115,8 +146,13 @@ export function calculateCarbonFootprint(inputs: CarbonInputs): CarbonResult {
   const electricityFactor =
     EMISSION_FACTORS.electricity_by_state[inputs.state as keyof typeof EMISSION_FACTORS.electricity_by_state] ||
     EMISSION_FACTORS.energy.electricity_us_avg
+
+  const renewableAdjustment = inputs.energyDetails?.renewablePercent
+    ? (100 - inputs.energyDetails.renewablePercent) / 100
+    : 1.0
+
   const energyAnnual =
-    inputs.energy.electricityKwh * 12 * electricityFactor +
+    inputs.energy.electricityKwh * 12 * electricityFactor * renewableAdjustment +
     inputs.energy.naturalGasTherms * 12 * EMISSION_FACTORS.energy.natural_gas +
     inputs.energy.heatingOilGallons * 12 * EMISSION_FACTORS.energy.heating_oil +
     inputs.energy.propaneGallons * 12 * EMISSION_FACTORS.energy.propane

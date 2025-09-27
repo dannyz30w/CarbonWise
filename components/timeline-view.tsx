@@ -62,7 +62,7 @@ export function TimelineView() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 rounded-lg bg-muted/50">
             <div className="text-sm text-muted-foreground">Latest Footprint</div>
-            <div className="text-2xl font-bold">{latestTotal.toFixed(1)} tonnes CO₂e</div>
+            <div className="text-2xl font-bold text-foreground">{latestTotal.toFixed(1)} tonnes CO₂e</div>
           </div>
           <div className="p-4 rounded-lg bg-muted/50">
             <div className="text-sm text-muted-foreground">Change from Previous</div>
@@ -91,17 +91,22 @@ export function TimelineView() {
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={timelineData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="date"
-                tick={{ fill: "var(--color-foreground)", fontSize: 12 }}
+                tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
                 angle={-45}
                 textAnchor="end"
                 height={60}
               />
               <YAxis
-                tick={{ fill: "var(--color-foreground)", fontSize: 12 }}
-                label={{ value: "Tonnes CO₂e/year", angle: -90, position: "insideLeft" }}
+                tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                label={{
+                  value: "Tonnes CO₂e/year",
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { textAnchor: "middle", fill: "hsl(var(--foreground))" },
+                }}
               />
               <Tooltip
                 formatter={(value: number, name: string) => [
@@ -121,24 +126,24 @@ export function TimelineView() {
                   return data ? `${data.name} (${label})` : label
                 }}
                 contentStyle={{
-                  backgroundColor: "var(--color-card)",
-                  border: "1px solid var(--color-border)",
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
                   borderRadius: "8px",
-                  color: "var(--color-foreground)",
+                  color: "hsl(var(--foreground))",
                 }}
               />
               <Line
                 type="monotone"
                 dataKey="total"
-                stroke="var(--color-primary)"
+                stroke="hsl(var(--primary))"
                 strokeWidth={3}
-                dot={{ fill: "var(--color-primary)", strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: "var(--color-primary)", strokeWidth: 2 }}
+                dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: "hsl(var(--primary))", strokeWidth: 2 }}
               />
               <Line
                 type="monotone"
                 dataKey="transport"
-                stroke="var(--color-chart-1)"
+                stroke="hsl(var(--chart-1))"
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}
@@ -146,7 +151,7 @@ export function TimelineView() {
               <Line
                 type="monotone"
                 dataKey="energy"
-                stroke="var(--color-chart-2)"
+                stroke="hsl(var(--chart-2))"
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}
@@ -154,7 +159,7 @@ export function TimelineView() {
               <Line
                 type="monotone"
                 dataKey="diet"
-                stroke="var(--color-chart-3)"
+                stroke="hsl(var(--chart-3))"
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}
@@ -166,20 +171,38 @@ export function TimelineView() {
         {/* Legend */}
         <div className="flex flex-wrap gap-4 justify-center text-sm">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-primary"></div>
-            <span>Total Footprint</span>
+            <div className="w-4 h-1 bg-primary rounded"></div>
+            <span className="text-foreground">Total Footprint</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-0.5 bg-chart-1" style={{ borderTop: "2px dashed" }}></div>
-            <span>Transportation</span>
+            <div
+              className="w-4 h-1 bg-chart-1 rounded"
+              style={{
+                background:
+                  "repeating-linear-gradient(to right, hsl(var(--chart-1)) 0, hsl(var(--chart-1)) 3px, transparent 3px, transparent 6px)",
+              }}
+            ></div>
+            <span className="text-foreground">Transportation</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-0.5 bg-chart-2" style={{ borderTop: "2px dashed" }}></div>
-            <span>Energy</span>
+            <div
+              className="w-4 h-1 bg-chart-2 rounded"
+              style={{
+                background:
+                  "repeating-linear-gradient(to right, hsl(var(--chart-2)) 0, hsl(var(--chart-2)) 3px, transparent 3px, transparent 6px)",
+              }}
+            ></div>
+            <span className="text-foreground">Energy</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-0.5 bg-chart-3" style={{ borderTop: "2px dashed" }}></div>
-            <span>Diet</span>
+            <div
+              className="w-4 h-1 bg-chart-3 rounded"
+              style={{
+                background:
+                  "repeating-linear-gradient(to right, hsl(var(--chart-3)) 0, hsl(var(--chart-3)) 3px, transparent 3px, transparent 6px)",
+              }}
+            ></div>
+            <span className="text-foreground">Diet</span>
           </div>
         </div>
       </CardContent>

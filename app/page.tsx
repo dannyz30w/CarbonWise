@@ -7,7 +7,7 @@ import { CalculationWizard } from "@/components/calculation-wizard"
 import { ResultsDashboard } from "@/components/results-dashboard"
 import { SavedCalculations } from "@/components/saved-calculations"
 import { calculateCarbonFootprint, type CarbonInputs, type CarbonResult } from "@/lib/carbon-calculator"
-import { Leaf, Calculator, TrendingDown, Users, Globe, Target, History, BookOpen } from "lucide-react"
+import { Leaf, Calculator, TrendingDown, Users, Globe, Target, History } from "lucide-react"
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<"landing" | "wizard" | "results" | "saved">("landing")
@@ -91,16 +91,6 @@ export default function Home() {
                 <History className="w-4 h-4 mr-2" />
                 My Progress
               </Button>
-              <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-                Features
-              </a>
-              <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
-                About
-              </a>
-              <a href="#methodology" className="text-muted-foreground hover:text-foreground transition-colors">
-                <BookOpen className="w-4 h-4 inline mr-1" />
-                Methodology
-              </a>
             </nav>
           </div>
         </div>
@@ -117,9 +107,6 @@ export default function Home() {
               <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-balance">
                 Calculate your personal carbon footprint with scientific precision. Get personalized recommendations to
                 reduce your environmental impact and contribute to a sustainable future.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Built with real EPA 2024 emission factors • State-specific electricity data • Privacy-first design
               </p>
             </div>
 
@@ -163,7 +150,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 bg-white/50">
+      <section className="py-20 px-4 bg-white/50">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">Advanced Carbon Calculation</h2>
@@ -252,57 +239,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="methodology" className="py-20 px-4 bg-muted/30">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Scientific Foundation</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Our calculations are based on the latest scientific research and authoritative data sources.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="glass">
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-primary" />
-                  EPA 2024 Data
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Transportation and energy emission factors from the EPA's 2024 Emission Factors for Greenhouse Gas
-                  Inventories.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="glass">
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-accent" />
-                  eGRID Database
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  State-specific electricity grid emission factors from EPA's eGRID 2023 database for regional accuracy.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="glass">
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Target className="w-5 h-5 text-secondary" />
-                  Peer-Reviewed Research
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Food and consumer goods emissions based on life-cycle assessments from scientific literature and FAO
-                  studies.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-primary to-accent text-white">
         <div className="container mx-auto text-center">
@@ -322,53 +258,19 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="py-12 px-4 bg-muted/50">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 rounded bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                  <Leaf className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-bold">CARBONWISE</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Advanced carbon footprint calculator built with scientific precision and privacy in mind.
-              </p>
+        <div className="container mx-auto text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="w-6 h-6 rounded bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <Leaf className="w-4 h-4 text-white" />
             </div>
-            <div>
-              <h4 className="font-semibold mb-3">Features</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Carbon Calculator</li>
-                <li>What-If Scenarios</li>
-                <li>Progress Tracking</li>
-                <li>Global Comparisons</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-3">Resources</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Methodology</li>
-                <li>Data Sources</li>
-                <li>Climate Science</li>
-                <li>FAQ</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-3">About</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Our Mission</li>
-                <li>Privacy Policy</li>
-                <li>Terms of Service</li>
-                <li>Contact</li>
-              </ul>
-            </div>
+            <span className="font-bold">CARBONWISE</span>
           </div>
-          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-            <p>
-              &copy; 2025 CARBONWISE. Built for the Congressional App Challenge. All emission factors from EPA 2024
-              data.
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Advanced carbon footprint calculator built with scientific precision and privacy in mind.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            &copy; 2025 CARBONWISE. Built for the Congressional App Challenge. All emission factors from EPA 2024 data.
+          </p>
         </div>
       </footer>
     </div>

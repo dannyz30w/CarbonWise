@@ -12,7 +12,7 @@ import { WorldMap } from "./world-map"
 import { WhatIfSliders } from "./what-if-sliders"
 import { CalculationStorage } from "@/lib/storage"
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
-import { TrendingDown, TrendingUp, Target, Lightbulb, Share2, Download, Save, BookOpen } from "lucide-react"
+import { TrendingDown, TrendingUp, Target, Lightbulb, Save, BookOpen } from "lucide-react"
 
 interface ResultsDashboardProps {
   result: CarbonResult
@@ -64,7 +64,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
     return "bg-destructive/20 text-destructive border-destructive"
   }
 
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, value }: any) => {
     const RADIAN = Math.PI / 180
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5
     const x = cx + radius * Math.cos(-midAngle * RADIAN)
@@ -79,10 +79,15 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
         fill="hsl(var(--foreground))"
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
-        fontSize="12"
+        fontSize="11"
         fontWeight="600"
       >
-        {`${(percent * 100).toFixed(0)}%`}
+        <tspan x={x} dy="0">
+          {name}
+        </tspan>
+        <tspan x={x} dy="12">
+          {(value / 1000).toFixed(1)}t
+        </tspan>
       </text>
     )
   }
@@ -152,7 +157,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
         <Card className="glass">
           <CardHeader>
             <CardTitle className="text-foreground">Emissions Breakdown</CardTitle>
-            <CardDescription>Your carbon footprint by category</CardDescription>
+            <CardDescription>Your carbon footprint by category (tonnes CO₂e/year)</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -188,20 +193,32 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
         <Card className="glass">
           <CardHeader>
             <CardTitle className="text-foreground">Global Comparison</CardTitle>
-            <CardDescription>How you compare to global averages</CardDescription>
+            <CardDescription>How you compare to global averages (tonnes CO₂e/year)</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={comparisonData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
                 <YAxis tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
                 <Tooltip
-                  formatter={(value: number) => [`${value.toFixed(0)} kg CO₂e`, "Annual Emissions"]}
+                  formatter={(value: number, name: string) => [
+                    `${(value / 1000).toFixed(1)} tonnes CO₂e`,
+                    "Annual Emissions",
+                  ]}
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
+                    color: "hsl(var(--foreground))",
+                  }}
+                  labelStyle={{
                     color: "hsl(var(--foreground))",
                   }}
                 />
@@ -351,15 +368,6 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
             </div>
           </DialogContent>
         </Dialog>
-
-        <Button variant="outline">
-          <Share2 className="w-4 h-4 mr-2" />
-          Share Results
-        </Button>
-        <Button variant="outline">
-          <Download className="w-4 h-4 mr-2" />
-          Export Data
-        </Button>
       </div>
 
       <Dialog open={showMethodology} onOpenChange={setShowMethodology}>

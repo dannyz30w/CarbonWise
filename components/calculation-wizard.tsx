@@ -20,6 +20,7 @@ interface CalculationWizardProps {
 }
 
 const parsePositiveNumber = (value: string, fallback = 0, max?: number): number => {
+  if (value === "" || value === "0") return fallback
   const num = Number.parseFloat(value)
   if (!Number.isFinite(num) || num < 0) return fallback
   if (max !== undefined && num > max) return max
@@ -100,6 +101,7 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
         organicFoodPercent: 10,
         processedFoodPercent: 40,
         foodWastePercent: 25,
+        lambServingsPerWeek: 0,
       },
       energy: { electricityKwh: 0, naturalGasTherms: 0, heatingOilGallons: 0, propaneGallons: 0 },
       energyDetails: {
@@ -519,6 +521,27 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
                   <div>
                     <LabelWithUnit
                       unit="servings/week"
+                      tooltip="Pork has moderate carbon footprint. One serving = 3-4 oz (85-113g)."
+                    >
+                      Pork Servings: {inputs.dietDetails?.porkServingsPerWeek || 0}
+                    </LabelWithUnit>
+                    <Slider
+                      value={[inputs.dietDetails?.porkServingsPerWeek || 0]}
+                      onValueChange={([value]) =>
+                        setInputs({
+                          ...inputs,
+                          dietDetails: { ...inputs.dietDetails, porkServingsPerWeek: value },
+                        })
+                      }
+                      max={14}
+                      step={0.5}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  <div>
+                    <LabelWithUnit
+                      unit="servings/week"
                       tooltip="Chicken has a lower carbon footprint than red meat. One serving = 3-4 oz (85-113g)."
                     >
                       Chicken Servings: {inputs.dietDetails?.chickenServingsPerWeek || 0}
@@ -532,6 +555,73 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
                         })
                       }
                       max={14}
+                      step={0.5}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  <div>
+                    <LabelWithUnit
+                      unit="servings/week"
+                      tooltip="Lamb has very high carbon footprint, similar to beef. One serving = 3-4 oz (85-113g)."
+                    >
+                      Lamb Servings: {inputs.dietDetails?.lambServingsPerWeek || 0}
+                    </LabelWithUnit>
+                    <Slider
+                      value={[inputs.dietDetails?.lambServingsPerWeek || 0]}
+                      onValueChange={([value]) =>
+                        setInputs({
+                          ...inputs,
+                          dietDetails: { ...inputs.dietDetails, lambServingsPerWeek: value },
+                        })
+                      }
+                      max={10}
+                      step={0.5}
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {inputs.dietProfile !== "vegan" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <LabelWithUnit
+                      unit="servings/week"
+                      tooltip="Fish has moderate carbon footprint. One serving = 3-4 oz (85-113g)."
+                    >
+                      Fish Servings: {inputs.dietDetails?.fishServingsPerWeek || 0}
+                    </LabelWithUnit>
+                    <Slider
+                      value={[inputs.dietDetails?.fishServingsPerWeek || 0]}
+                      onValueChange={([value]) =>
+                        setInputs({
+                          ...inputs,
+                          dietDetails: { ...inputs.dietDetails, fishServingsPerWeek: value },
+                        })
+                      }
+                      max={14}
+                      step={0.5}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  <div>
+                    <LabelWithUnit
+                      unit="servings/day"
+                      tooltip="Dairy products have moderate carbon footprint. Includes milk, cheese, yogurt."
+                    >
+                      Dairy Servings: {inputs.dietDetails?.dairyServingsPerDay || 0}
+                    </LabelWithUnit>
+                    <Slider
+                      value={[inputs.dietDetails?.dairyServingsPerDay || 0]}
+                      onValueChange={([value]) =>
+                        setInputs({
+                          ...inputs,
+                          dietDetails: { ...inputs.dietDetails, dairyServingsPerDay: value },
+                        })
+                      }
+                      max={8}
                       step={0.5}
                       className="mt-2"
                     />
@@ -637,77 +727,194 @@ export function CalculationWizard({ onComplete, initialInputs }: CalculationWiza
             </div>
           )}
 
-          {/* Shopping Step */}
+          {/* Shopping Step - Enhanced */}
           {currentStep === 5 && (
-            <div className="space-y-4">
-              <div>
-                <LabelWithUnit
-                  htmlFor="clothing"
-                  unit="$/year"
-                  tooltip="Annual spending on new clothing. Fast fashion has higher emissions than quality, durable clothing."
-                >
-                  Annual Clothing Spending
-                </LabelWithUnit>
-                <Input
-                  id="clothing"
-                  type="number"
-                  placeholder="e.g., 500"
-                  value={inputs.shopping.clothingSpend}
-                  min="0"
-                  max="10000"
-                  onChange={(e) =>
-                    setInputs({
-                      ...inputs,
-                      shopping: { ...inputs.shopping, clothingSpend: parsePositiveNumber(e.target.value, 0, 10000) },
-                    })
-                  }
-                />
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <LabelWithUnit
+                    htmlFor="clothing"
+                    unit="$/year"
+                    tooltip="Annual spending on new clothing. Fast fashion has higher emissions than quality, durable clothing."
+                  >
+                    Annual Clothing Spending
+                  </LabelWithUnit>
+                  <Input
+                    id="clothing"
+                    type="number"
+                    placeholder="e.g., 500"
+                    value={inputs.shopping.clothingSpend || ""}
+                    min="0"
+                    max="10000"
+                    onChange={(e) =>
+                      setInputs({
+                        ...inputs,
+                        shopping: { ...inputs.shopping, clothingSpend: parsePositiveNumber(e.target.value, 0, 10000) },
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <LabelWithUnit
+                    htmlFor="electronics"
+                    unit="$/year"
+                    tooltip="Spending on phones, computers, TVs, and other electronics. Manufacturing electronics has high carbon intensity."
+                  >
+                    Annual Electronics Spending
+                  </LabelWithUnit>
+                  <Input
+                    id="electronics"
+                    type="number"
+                    placeholder="e.g., 800"
+                    value={inputs.shopping.electronicsSpend || ""}
+                    min="0"
+                    max="20000"
+                    onChange={(e) =>
+                      setInputs({
+                        ...inputs,
+                        shopping: {
+                          ...inputs.shopping,
+                          electronicsSpend: parsePositiveNumber(e.target.value, 0, 20000),
+                        },
+                      })
+                    }
+                  />
+                </div>
               </div>
-              <div>
-                <LabelWithUnit
-                  htmlFor="electronics"
-                  unit="$/year"
-                  tooltip="Spending on phones, computers, TVs, and other electronics. Manufacturing electronics has high carbon intensity."
-                >
-                  Annual Electronics Spending
-                </LabelWithUnit>
-                <Input
-                  id="electronics"
-                  type="number"
-                  placeholder="e.g., 800"
-                  value={inputs.shopping.electronicsSpend}
-                  min="0"
-                  max="20000"
-                  onChange={(e) =>
-                    setInputs({
-                      ...inputs,
-                      shopping: { ...inputs.shopping, electronicsSpend: parsePositiveNumber(e.target.value, 0, 20000) },
-                    })
-                  }
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <LabelWithUnit
+                    htmlFor="general"
+                    unit="$/year"
+                    tooltip="Other purchases including furniture, home goods, books, and miscellaneous items."
+                  >
+                    Annual General Shopping
+                  </LabelWithUnit>
+                  <Input
+                    id="general"
+                    type="number"
+                    placeholder="e.g., 2000"
+                    value={inputs.shopping.generalSpend || ""}
+                    min="0"
+                    max="50000"
+                    onChange={(e) =>
+                      setInputs({
+                        ...inputs,
+                        shopping: { ...inputs.shopping, generalSpend: parsePositiveNumber(e.target.value, 0, 50000) },
+                      })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <LabelWithUnit
+                    unit="items/year"
+                    tooltip="Number of new clothing items purchased per year. Fast fashion has higher emissions."
+                  >
+                    New Clothing Items: {inputs.shoppingDetails?.newClothingItems || 0}
+                  </LabelWithUnit>
+                  <Slider
+                    value={[inputs.shoppingDetails?.newClothingItems || 0]}
+                    onValueChange={([value]) =>
+                      setInputs({
+                        ...inputs,
+                        shoppingDetails: { ...inputs.shoppingDetails, newClothingItems: value },
+                      })
+                    }
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
               </div>
-              <div>
-                <LabelWithUnit
-                  htmlFor="general"
-                  unit="$/year"
-                  tooltip="Other purchases including furniture, home goods, books, and miscellaneous items."
-                >
-                  Annual General Shopping
-                </LabelWithUnit>
-                <Input
-                  id="general"
-                  type="number"
-                  placeholder="e.g., 2000"
-                  value={inputs.shopping.generalSpend}
-                  min="0"
-                  max="50000"
-                  onChange={(e) =>
-                    setInputs({
-                      ...inputs,
-                      shopping: { ...inputs.shopping, generalSpend: parsePositiveNumber(e.target.value, 0, 50000) },
-                    })
-                  }
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <LabelWithUnit
+                    unit="%"
+                    tooltip="Percentage of clothing bought secondhand. Secondhand shopping significantly reduces emissions."
+                  >
+                    Secondhand Clothing: {inputs.shoppingDetails?.secondhandClothingPercent || 0}%
+                  </LabelWithUnit>
+                  <Slider
+                    value={[inputs.shoppingDetails?.secondhandClothingPercent || 0]}
+                    onValueChange={([value]) =>
+                      setInputs({
+                        ...inputs,
+                        shoppingDetails: { ...inputs.shoppingDetails, secondhandClothingPercent: value },
+                      })
+                    }
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <LabelWithUnit
+                    unit="%"
+                    tooltip="How often you repair items instead of replacing them. Repair reduces waste and emissions."
+                  >
+                    Repair vs Replace: {inputs.shoppingDetails?.repairVsReplacePercent || 0}%
+                  </LabelWithUnit>
+                  <Slider
+                    value={[inputs.shoppingDetails?.repairVsReplacePercent || 0]}
+                    onValueChange={([value]) =>
+                      setInputs({
+                        ...inputs,
+                        shoppingDetails: { ...inputs.shoppingDetails, repairVsReplacePercent: value },
+                      })
+                    }
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <LabelWithUnit
+                    unit="packages/month"
+                    tooltip="Number of packages delivered to your home per month. Online shopping has packaging and shipping emissions."
+                  >
+                    Monthly Packages: {inputs.shoppingDetails?.packagesPerMonth || 0}
+                  </LabelWithUnit>
+                  <Slider
+                    value={[inputs.shoppingDetails?.packagesPerMonth || 0]}
+                    onValueChange={([value]) =>
+                      setInputs({
+                        ...inputs,
+                        shoppingDetails: { ...inputs.shoppingDetails, packagesPerMonth: value },
+                      })
+                    }
+                    max={50}
+                    step={1}
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <LabelWithUnit
+                    unit="%"
+                    tooltip="Percentage of shopping done at local stores vs online. Local shopping reduces shipping emissions."
+                  >
+                    Local Shopping: {inputs.shoppingDetails?.localShoppingPercent || 0}%
+                  </LabelWithUnit>
+                  <Slider
+                    value={[inputs.shoppingDetails?.localShoppingPercent || 0]}
+                    onValueChange={([value]) =>
+                      setInputs({
+                        ...inputs,
+                        shoppingDetails: { ...inputs.shoppingDetails, localShoppingPercent: value },
+                      })
+                    }
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
               </div>
             </div>
           )}
