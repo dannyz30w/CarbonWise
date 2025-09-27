@@ -14,70 +14,64 @@ interface WhatIfSlidersProps {
 }
 
 export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersProps) {
-  const [modifiedInputs, setModifiedInputs] = useState<CarbonInputs>(originalInputs)
-  const modifiedResult = calculateCarbonFootprint(modifiedInputs)
-
-  const handleRenewableEnergyChange = (value: number) => {
-    setModifiedInputs({
-      ...modifiedInputs,
-      energyDetails: {
-        ...modifiedInputs.energyDetails,
-        renewablePercent: value,
-      },
-    })
-  }
-
-  const handleDrivingReduction = (value: number) => {
-    const newCommute = modifiedInputs.commute.map((transport) => {
-      if (transport.mode.includes("car")) {
-        const originalTransport = originalInputs.commute.find((orig) => orig.mode === transport.mode)
-        return {
-          ...transport,
-          miles: (originalTransport?.miles || 0) * (1 - value / 100),
-        }
-      }
-      return transport
-    })
-    setModifiedInputs({ ...modifiedInputs, commute: newCommute })
-  }
-
-  const handleMeatReduction = (value: number) => {
-    const originalBeef = originalInputs.dietDetails?.beefServingsPerWeek || 0
-    const originalPork = originalInputs.dietDetails?.porkServingsPerWeek || 0
-    const originalChicken = originalInputs.dietDetails?.chickenServingsPerWeek || 0
-    const originalLamb = originalInputs.dietDetails?.lambServingsPerWeek || 0
-
-    setModifiedInputs({
-      ...modifiedInputs,
-      dietDetails: {
-        ...modifiedInputs.dietDetails,
-        beefServingsPerWeek: originalBeef * (1 - value / 100),
-        porkServingsPerWeek: originalPork * (1 - value / 100),
-        chickenServingsPerWeek: originalChicken * (1 - value / 100),
-        lambServingsPerWeek: originalLamb * (1 - value / 100),
-      },
-    })
-  }
-
-  const handleShoppingReduction = (value: number) => {
-    const originalClothing = originalInputs.shopping.clothingSpend
-    const originalElectronics = originalInputs.shopping.electronicsSpend
-    const originalGeneral = originalInputs.shopping.generalSpend
-
-    setModifiedInputs({
-      ...modifiedInputs,
-      shopping: {
-        clothingSpend: originalClothing * (1 - value / 100),
-        electronicsSpend: originalElectronics * (1 - value / 100),
-        generalSpend: originalGeneral * (1 - value / 100),
-      },
-    })
-  }
-
-  const [renewableSlider, setRenewableSlider] = useState(modifiedInputs.energyDetails?.renewablePercent || 0)
+  const [renewableSlider, setRenewableSlider] = useState(originalInputs.energyDetails?.renewablePercent || 0)
   const [drivingSlider, setDrivingSlider] = useState(0)
   const [meatSlider, setMeatSlider] = useState(0)
   const [shoppingSlider, setShoppingSlider] = useState(0)
+
+  const createModifiedInputs = (): CarbonInputs => {
+    const modifiedInputs = { ...originalInputs }
+
+    // Apply renewable energy changes
+    if (modifiedInputs.energyDetails) {
+      modifiedInputs.energyDetails = {
+        ...modifiedInputs.energyDetails,
+        renewablePercent: renewableSlider,
+      }
+    }
+
+    // Apply driving reduction
+    if (drivingSlider > 0) {
+      modifiedInputs.commute = originalInputs.commute.map((transport) => {
+        if (transport.mode.toLowerCase().includes("car") || transport.mode.toLowerCase().includes("drive")) {
+          return {
+            ...transport,
+            miles: transport.miles * (1 - drivingSlider / 100),
+          }
+        }
+        return transport
+      })
+    }
+
+    // Apply meat reduction
+    if (meatSlider > 0 && modifiedInputs.dietDetails) {
+      const originalBeef = originalInputs.dietDetails?.beefServingsPerWeek || 0
+      const originalPork = originalInputs.dietDetails?.porkServingsPerWeek || 0
+      const originalChicken = originalInputs.dietDetails?.chickenServingsPerWeek || 0
+      const originalLamb = originalInputs.dietDetails?.lambServingsPerWeek || 0
+
+      modifiedInputs.dietDetails = {
+        ...modifiedInputs.dietDetails,
+        beefServingsPerWeek: originalBeef * (1 - meatSlider / 100),
+        porkServingsPerWeek: originalPork * (1 - meatSlider / 100),
+        chickenServingsPerWeek: originalChicken * (1 - meatSlider / 100),
+        lambServingsPerWeek: originalLamb * (1 - meatSlider / 100),
+      }
+    }
+
+    // Apply shopping reduction
+    if (shoppingSlider > 0) {
+      modifiedInputs.shopping = {
+        clothingSpend: originalInputs.shopping.clothingSpend * (1 - shoppingSlider / 100),
+        electronicsSpend: originalInputs.shopping.electronicsSpend * (1 - shoppingSlider / 100),
+        generalSpend: originalInputs.shopping.generalSpend * (1 - shoppingSlider / 100),
+      }
+    }
+
+    return modifiedInputs
+  }
+
+  const modifiedResult = calculateCarbonFootprint(createModifiedInputs())
 
   const scenarios = [
     {
@@ -88,10 +82,7 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
       currentValue: renewableSlider,
       maxValue: 100,
       unit: "%",
-      onChange: (value: number) => {
-        setRenewableSlider(value)
-        handleRenewableEnergyChange(value)
-      },
+      onChange: setRenewableSlider,
     },
     {
       id: "reduce_driving",
@@ -101,10 +92,7 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
       currentValue: drivingSlider,
       maxValue: 100,
       unit: "%",
-      onChange: (value: number) => {
-        setDrivingSlider(value)
-        handleDrivingReduction(value)
-      },
+      onChange: setDrivingSlider,
     },
     {
       id: "reduce_meat",
@@ -114,10 +102,7 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
       currentValue: meatSlider,
       maxValue: 100,
       unit: "%",
-      onChange: (value: number) => {
-        setMeatSlider(value)
-        handleMeatReduction(value)
-      },
+      onChange: setMeatSlider,
     },
     {
       id: "reduce_shopping",
@@ -127,10 +112,7 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
       currentValue: shoppingSlider,
       maxValue: 50,
       unit: "%",
-      onChange: (value: number) => {
-        setShoppingSlider(value)
-        handleShoppingReduction(value)
-      },
+      onChange: setShoppingSlider,
     },
   ]
 
@@ -138,7 +120,6 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
   const percentageReduction = (totalReduction / originalResult.annual.total) * 100
 
   const resetAllScenarios = () => {
-    setModifiedInputs(originalInputs)
     setRenewableSlider(originalInputs.energyDetails?.renewablePercent || 0)
     setDrivingSlider(0)
     setMeatSlider(0)

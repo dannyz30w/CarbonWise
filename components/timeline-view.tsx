@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { CalculationStorage } from "@/lib/storage"
 import { TrendingDown, TrendingUp, Calendar } from "lucide-react"
 import { useMemo } from "react"
@@ -90,7 +90,7 @@ export function TimelineView() {
         {/* Timeline Chart */}
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={timelineData}>
+            <LineChart data={timelineData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="date"
@@ -132,78 +132,45 @@ export function TimelineView() {
                   color: "hsl(var(--foreground))",
                 }}
               />
+              <Legend />
               <Line
                 type="monotone"
                 dataKey="total"
                 stroke="hsl(var(--primary))"
-                strokeWidth={3}
-                dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: "hsl(var(--primary))", strokeWidth: 2 }}
+                strokeWidth={4}
+                dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8, stroke: "hsl(var(--primary))", strokeWidth: 2 }}
+                name="Total Footprint"
               />
               <Line
                 type="monotone"
                 dataKey="transport"
-                stroke="hsl(var(--chart-1))"
+                stroke="#10B981"
                 strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={false}
+                strokeDasharray="8 4"
+                dot={{ fill: "#10B981", strokeWidth: 1, r: 4 }}
+                name="Transportation"
               />
               <Line
                 type="monotone"
                 dataKey="energy"
-                stroke="hsl(var(--chart-2))"
+                stroke="#3B82F6"
                 strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={false}
+                strokeDasharray="8 4"
+                dot={{ fill: "#3B82F6", strokeWidth: 1, r: 4 }}
+                name="Energy"
               />
               <Line
                 type="monotone"
                 dataKey="diet"
-                stroke="hsl(var(--chart-3))"
+                stroke="#F59E0B"
                 strokeWidth={2}
-                strokeDasharray="5 5"
-                dot={false}
+                strokeDasharray="8 4"
+                dot={{ fill: "#F59E0B", strokeWidth: 1, r: 4 }}
+                name="Diet"
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
-
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 justify-center text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-1 bg-primary rounded"></div>
-            <span className="text-foreground">Total Footprint</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div
-              className="w-4 h-1 bg-chart-1 rounded"
-              style={{
-                background:
-                  "repeating-linear-gradient(to right, hsl(var(--chart-1)) 0, hsl(var(--chart-1)) 3px, transparent 3px, transparent 6px)",
-              }}
-            ></div>
-            <span className="text-foreground">Transportation</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div
-              className="w-4 h-1 bg-chart-2 rounded"
-              style={{
-                background:
-                  "repeating-linear-gradient(to right, hsl(var(--chart-2)) 0, hsl(var(--chart-2)) 3px, transparent 3px, transparent 6px)",
-              }}
-            ></div>
-            <span className="text-foreground">Energy</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div
-              className="w-4 h-1 bg-chart-3 rounded"
-              style={{
-                background:
-                  "repeating-linear-gradient(to right, hsl(var(--chart-3)) 0, hsl(var(--chart-3)) 3px, transparent 3px, transparent 6px)",
-              }}
-            ></div>
-            <span className="text-foreground">Diet</span>
-          </div>
         </div>
       </CardContent>
     </Card>

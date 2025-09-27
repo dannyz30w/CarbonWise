@@ -11,7 +11,7 @@ import { CarbonMeter } from "./carbon-meter"
 import { WorldMap } from "./world-map"
 import { WhatIfSliders } from "./what-if-sliders"
 import { CalculationStorage } from "@/lib/storage"
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { TrendingDown, TrendingUp, Target, Lightbulb, Save, BookOpen } from "lucide-react"
 
 interface ResultsDashboardProps {
@@ -27,21 +27,23 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
   const [calculationName, setCalculationName] = useState("")
   const [showMethodology, setShowMethodology] = useState(false)
 
-  const pieData = [
-    { name: "Transportation", value: result.annual.transport, color: COLORS[0] },
-    { name: "Flights", value: result.annual.flights, color: COLORS[1] },
-    { name: "Diet", value: result.annual.diet, color: COLORS[2] },
-    { name: "Energy", value: result.annual.energy, color: COLORS[3] },
-    { name: "Shopping", value: result.annual.shopping, color: COLORS[4] },
-    { name: "Waste", value: result.annual.waste, color: COLORS[5] },
-    { name: "Water", value: result.annual.water, color: COLORS[6] },
-  ].filter((item) => item.value > 0)
+  const categoryData = [
+    { name: "Transportation", value: result.annual.transport / 1000, color: COLORS[0] },
+    { name: "Flights", value: result.annual.flights / 1000, color: COLORS[1] },
+    { name: "Diet", value: result.annual.diet / 1000, color: COLORS[2] },
+    { name: "Energy", value: result.annual.energy / 1000, color: COLORS[3] },
+    { name: "Shopping", value: result.annual.shopping / 1000, color: COLORS[4] },
+    { name: "Waste", value: result.annual.waste / 1000, color: COLORS[5] },
+    { name: "Water", value: result.annual.water / 1000, color: COLORS[6] },
+  ]
+    .filter((item) => item.value > 0)
+    .sort((a, b) => b.value - a.value)
 
   const comparisonData = [
-    { name: "Your Footprint", value: result.annual.total, color: COLORS[0] },
-    { name: "US Average", value: 16000, color: COLORS[3] },
-    { name: "Global Average", value: 4800, color: COLORS[1] },
-    { name: "Paris Target", value: 2300, color: COLORS[2] },
+    { name: "Your Footprint", value: result.annual.total / 1000, color: COLORS[0] },
+    { name: "US Average", value: 16.0, color: COLORS[3] },
+    { name: "Global Average", value: 4.8, color: COLORS[1] },
+    { name: "Paris Target", value: 2.3, color: COLORS[2] },
   ]
 
   const saveCalculation = () => {
@@ -64,38 +66,42 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
     return "bg-destructive/20 text-destructive border-destructive"
   }
 
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, value }: any) => {
-    const RADIAN = Math.PI / 180
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5
-    const x = cx + radius * Math.cos(-midAngle * RADIAN)
-    const y = cy + radius * Math.sin(-midAngle * RADIAN)
-
-    if (percent < 0.05) return null // Don't show labels for very small slices
-
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="hsl(var(--foreground))"
-        textAnchor={x > cx ? "start" : "end"}
-        dominantBaseline="central"
-        fontSize="11"
-        fontWeight="600"
-      >
-        <tspan x={x} dy="0">
-          {name}
-        </tspan>
-        <tspan x={x} dy="12">
-          {(value / 1000).toFixed(1)}t
-        </tspan>
-      </text>
-    )
-  }
-
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-8">
+    <div className="max-w-7xl mx-auto p-6 space-y-8 relative">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full animate-pulse"></div>
+        <div
+          className="absolute top-40 right-20 w-24 h-24 bg-accent/5 rounded-full animate-bounce"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute bottom-40 left-1/4 w-20 h-20 bg-success/5 rounded-full animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute bottom-20 right-1/3 w-28 h-28 bg-warning/5 rounded-full animate-bounce"
+          style={{ animationDelay: "3s" }}
+        ></div>
+
+        {/* Animated globe-like elements */}
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 opacity-5">
+          <div
+            className="w-full h-full rounded-full border-2 border-primary animate-spin"
+            style={{ animationDuration: "20s" }}
+          ></div>
+          <div
+            className="absolute inset-8 rounded-full border border-accent animate-spin"
+            style={{ animationDuration: "15s", animationDirection: "reverse" }}
+          ></div>
+          <div
+            className="absolute inset-16 rounded-full border border-success animate-spin"
+            style={{ animationDuration: "10s" }}
+          ></div>
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-4 relative z-10">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           Your Carbon Footprint Results
         </h1>
@@ -117,7 +123,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
       </div>
 
       {/* Main Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
         <Card className="glass animate-float">
           <CardContent className="p-6">
             <CarbonMeter value={result.daily.total} maxValue={50} label="Daily Footprint" unit="kg CO₂e" />
@@ -150,10 +156,12 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
       </div>
 
       {/* What-If Sliders */}
-      <WhatIfSliders originalInputs={inputs} originalResult={result} />
+      <div className="relative z-10">
+        <WhatIfSliders originalInputs={inputs} originalResult={result} />
+      </div>
 
       {/* Breakdown Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative z-10">
         <Card className="glass">
           <CardHeader>
             <CardTitle className="text-foreground">Emissions Breakdown</CardTitle>
@@ -161,23 +169,21 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
+              <BarChart data={categoryData} layout="horizontal" margin={{ left: 80, right: 20, top: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  type="number"
+                  tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                  tickFormatter={(value) => `${value.toFixed(1)}t`}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                  width={80}
+                />
                 <Tooltip
-                  formatter={(value: number) => [`${value.toFixed(0)} kg CO₂e`, "Annual Emissions"]}
+                  formatter={(value: number) => [`${value.toFixed(1)} tonnes CO₂e`, "Annual Emissions"]}
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",
@@ -185,7 +191,8 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
                     color: "hsl(var(--foreground))",
                   }}
                 />
-              </PieChart>
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -208,10 +215,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
                 />
                 <YAxis tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
                 <Tooltip
-                  formatter={(value: number, name: string) => [
-                    `${(value / 1000).toFixed(1)} tonnes CO₂e`,
-                    "Annual Emissions",
-                  ]}
+                  formatter={(value: number, name: string) => [`${value.toFixed(1)} tonnes CO₂e`, "Annual Emissions"]}
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",
@@ -221,6 +225,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
                   labelStyle={{
                     color: "hsl(var(--foreground))",
                   }}
+                  cursor={{ fill: "hsl(var(--muted))" }}
                 />
                 <Bar dataKey="value" fill="hsl(var(--primary))" />
               </BarChart>
@@ -230,10 +235,12 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
       </div>
 
       {/* World Map */}
-      <WorldMap userEmissions={result.annual.total} />
+      <div className="relative z-10">
+        <WorldMap userEmissions={result.annual.total} />
+      </div>
 
       {/* Comparisons */}
-      <Card className="glass">
+      <Card className="glass relative z-10">
         <CardHeader>
           <CardTitle>Detailed Comparisons</CardTitle>
           <CardDescription>See how your footprint compares to key benchmarks</CardDescription>
@@ -285,7 +292,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
       </Card>
 
       {/* Suggestions */}
-      <Card className="glass">
+      <Card className="glass relative z-10">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Lightbulb className="w-5 h-5 text-yellow-500" />
@@ -330,7 +337,7 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
       </Card>
 
       {/* Actions */}
-      <div className="flex flex-wrap gap-4 justify-center">
+      <div className="flex flex-wrap gap-4 justify-center relative z-10">
         <Button onClick={onReset} variant="outline">
           Calculate Again
         </Button>
