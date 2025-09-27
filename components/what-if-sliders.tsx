@@ -293,12 +293,6 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
                     step={scenario.maxValue >= 100 ? 5 : 1}
                     className="mt-2"
                   />
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary/50 to-primary transition-all duration-300"
-                      style={{ width: `${(scenario.currentValue / scenario.maxValue) * 100}%` }}
-                    />
-                  </div>
                 </div>
               </Card>
             )

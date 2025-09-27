@@ -13,8 +13,6 @@ export function TimelineView() {
     const data = savedCalculations
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .map((calc, index) => {
-        console.log("[v0] Processing calculation:", calc.name, calc.result?.annual)
-
         return {
           date: new Date(calc.date).toLocaleDateString("en-US", {
             month: "short",
@@ -33,7 +31,6 @@ export function TimelineView() {
         }
       })
 
-    console.log("[v0] Timeline data processed:", data)
     return data
   }, [savedCalculations])
 

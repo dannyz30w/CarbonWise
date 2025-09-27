@@ -138,6 +138,7 @@ export default function Home() {
                 <Leaf className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-foreground">CARBONWISE</span>
+              <span className="text-sm text-muted-foreground ml-2">by [Your Name]</span>
               <Sparkles className="w-4 h-4 text-accent animate-pulse" />
             </div>
             <nav className="hidden md:flex items-center gap-6">
@@ -145,7 +146,7 @@ export default function Home() {
                 variant="default"
                 size="sm"
                 onClick={handleViewSaved}
-                className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 shadow-md"
+                className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 shadow-md text-black"
               >
                 <History className="w-4 h-4 mr-2" />
                 My Progress
@@ -291,10 +292,10 @@ export default function Home() {
                 <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center mx-auto mb-4 shadow-md">
                   <Users className="w-6 h-6 text-destructive" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Scientific Methodology</h3>
+                <h3 className="text-xl font-semibold mb-2">Regional Accuracy</h3>
                 <p className="text-muted-foreground">
-                  Transparent calculations based on EPA 2024 data with detailed explanations of data sources and
-                  methods.
+                  State-specific electricity grid factors and regional adjustments for precise local impact
+                  calculations.
                 </p>
               </CardContent>
             </Card>

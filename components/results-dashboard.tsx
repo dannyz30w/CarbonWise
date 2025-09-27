@@ -203,46 +203,20 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
             <CardDescription>Your carbon footprint by category (tonnes CO₂e/year)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={categoryData} layout="horizontal" margin={{ left: 100, right: 30, top: 20, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                <XAxis
-                  type="number"
-                  tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                  tickFormatter={(value) => `${value}t`}
-                  stroke="hsl(var(--foreground))"
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                  width={100}
-                  stroke="hsl(var(--foreground))"
-                />
-                <Tooltip
-                  formatter={(value: number, name: string, props: any) => [
-                    `${Number(value).toFixed(1)} tonnes CO₂e (${props.payload.percentage}%)`,
-                    "Annual Emissions",
-                  ]}
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                    color: "hsl(var(--foreground))",
-                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                  }}
-                  labelStyle={{
-                    color: "hsl(var(--foreground))",
-                    fontWeight: "600",
-                  }}
-                />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={(entry: any) => entry.color}>
-                  {categoryData.map((entry, index) => (
-                    <Bar key={`bar-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              {categoryData.map((category, index) => (
+                <div key={category.name} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: category.color }} />
+                    <span className="font-medium text-foreground">{category.name}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold text-foreground">{category.value} tonnes</div>
+                    <div className="text-sm text-muted-foreground">{category.percentage}%</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
@@ -254,39 +228,18 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
           <CardContent>
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  stroke="hsl(var(--foreground))"
-                />
-                <YAxis tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} stroke="hsl(var(--foreground))" />
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                <YAxis />
                 <Tooltip
                   formatter={(value: number) => [`${Number(value).toFixed(1)} tonnes CO₂e`, "Annual Emissions"]}
                   contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                    color: "hsl(var(--foreground))",
-                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                  }}
-                  labelStyle={{
-                    color: "hsl(var(--foreground))",
-                    fontWeight: "600",
-                  }}
-                  cursor={{
-                    fill: "hsl(var(--muted))",
-                    opacity: 0.1,
+                    backgroundColor: "white",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
                   }}
                 />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]} stroke="hsl(var(--border))" strokeWidth={1}>
-                  {comparisonData.map((entry, index) => (
-                    <Bar key={`comparison-bar-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
+                <Bar dataKey="value" fill="#8884d8" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
