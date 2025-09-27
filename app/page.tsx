@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CalculationWizard } from "@/components/calculation-wizard"
 import { ResultsDashboard } from "@/components/results-dashboard"
 import { SavedCalculations } from "@/components/saved-calculations"
@@ -13,6 +13,7 @@ export default function Home() {
   const [currentView, setCurrentView] = useState<"landing" | "wizard" | "results" | "saved">("landing")
   const [result, setResult] = useState<CarbonResult | null>(null)
   const [currentInputs, setCurrentInputs] = useState<CarbonInputs | null>(null)
+  const [comparisonData, setComparisonData] = useState<any[] | null>(null)
 
   const handleStartCalculation = () => {
     setCurrentView("wizard")
@@ -29,6 +30,7 @@ export default function Home() {
     setCurrentView("landing")
     setResult(null)
     setCurrentInputs(null)
+    setComparisonData(null)
   }
 
   const handleLoadCalculation = (inputs: CarbonInputs) => {
@@ -38,6 +40,24 @@ export default function Home() {
 
   const handleViewSaved = () => {
     setCurrentView("saved")
+  }
+
+  const handleCompareCalculations = (calculations: any[]) => {
+    if (calculations.length >= 2) {
+      const comparisonData = calculations.map((calc) => ({
+        name: calc.name,
+        date: new Date(calc.date).toLocaleDateString(),
+        total: (calc.result?.annual?.total || 0) / 1000,
+        transport: (calc.result?.annual?.transport || 0) / 1000,
+        energy: (calc.result?.annual?.energy || 0) / 1000,
+        diet: (calc.result?.annual?.diet || 0) / 1000,
+        flights: (calc.result?.annual?.flights || 0) / 1000,
+        shopping: (calc.result?.annual?.shopping || 0) / 1000,
+        waste: (calc.result?.annual?.waste || 0) / 1000,
+        water: (calc.result?.annual?.water || 0) / 1000,
+      }))
+      setComparisonData(comparisonData)
+    }
   }
 
   if (currentView === "wizard") {
@@ -71,29 +91,95 @@ export default function Home() {
           </div>
           <SavedCalculations
             onLoadCalculation={handleLoadCalculation}
-            onCompareCalculations={(calculations) => {
-              if (calculations.length >= 2) {
-                const comparisonData = calculations.map((calc) => ({
-                  name: calc.name,
-                  date: new Date(calc.date).toLocaleDateString(),
-                  total: (calc.result?.annual?.total || 0) / 1000,
-                  transport: (calc.result?.annual?.transport || 0) / 1000,
-                  energy: (calc.result?.annual?.energy || 0) / 1000,
-                  diet: (calc.result?.annual?.diet || 0) / 1000,
-                  flights: (calc.result?.annual?.flights || 0) / 1000,
-                  shopping: (calc.result?.annual?.shopping || 0) / 1000,
-                }))
-
-                alert(
-                  `Comparison Results:\n\n${comparisonData
-                    .map((calc) => `${calc.name} (${calc.date}): ${calc.total.toFixed(1)} tonnes CO₂e/year`)
-                    .join(
-                      "\n",
-                    )}\n\nDifference: ${Math.abs(comparisonData[0].total - comparisonData[1].total).toFixed(1)} tonnes CO₂e/year`,
-                )
-              }
-            }}
+            onCompareCalculations={handleCompareCalculations}
           />
+
+          {comparisonData && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-2xl">Calculation Comparison</CardTitle>
+                    <Button variant="outline" onClick={() => setComparisonData(null)}>
+                      ✕
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {comparisonData.map((calc, index) => (
+                        <Card key={index} className="border-2">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-lg">{calc.name}</CardTitle>
+                            <p className="text-sm text-muted-foreground">{calc.date}</p>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              <div className="text-center mb-4">
+                                <div className="text-2xl font-bold text-primary">{calc.total.toFixed(1)}</div>
+                                <div className="text-sm text-muted-foreground">tonnes CO₂e/year</div>
+                              </div>
+                              <div className="space-y-1 text-sm">
+                                <div className="flex justify-between">
+                                  <span>Transport:</span>
+                                  <span className="font-medium">{calc.transport.toFixed(1)}t</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Energy:</span>
+                                  <span className="font-medium">{calc.energy.toFixed(1)}t</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Diet:</span>
+                                  <span className="font-medium">{calc.diet.toFixed(1)}t</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Flights:</span>
+                                  <span className="font-medium">{calc.flights.toFixed(1)}t</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Shopping:</span>
+                                  <span className="font-medium">{calc.shopping.toFixed(1)}t</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Waste:</span>
+                                  <span className="font-medium">{calc.waste.toFixed(1)}t</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Water:</span>
+                                  <span className="font-medium">{calc.water.toFixed(1)}t</span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {comparisonData.length === 2 && (
+                      <Card className="bg-muted/50">
+                        <CardHeader>
+                          <CardTitle className="text-lg">Difference Analysis</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-center">
+                            <div className="text-xl font-bold">
+                              {Math.abs(comparisonData[0].total - comparisonData[1].total).toFixed(1)} tonnes CO₂e/year
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {comparisonData[0].total > comparisonData[1].total
+                                ? `${comparisonData[1].name} has ${Math.abs(comparisonData[0].total - comparisonData[1].total).toFixed(1)}t lower emissions`
+                                : `${comparisonData[0].name} has ${Math.abs(comparisonData[0].total - comparisonData[1].total).toFixed(1)}t lower emissions`}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -116,7 +202,6 @@ export default function Home() {
           style={{ animationDelay: "3s" }}
         ></div>
 
-        {/* Animated globe-like elements */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 opacity-5">
           <div
             className="w-full h-full rounded-full border-2 border-primary animate-spin"
@@ -132,7 +217,6 @@ export default function Home() {
           ></div>
         </div>
 
-        {/* Floating particles */}
         <div
           className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/20 rounded-full animate-bounce"
           style={{ animationDelay: "0.5s", animationDuration: "3s" }}
@@ -147,7 +231,6 @@ export default function Home() {
         ></div>
       </div>
 
-      {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 relative">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -174,7 +257,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section className="py-20 px-4 relative z-10">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto space-y-8">
@@ -208,7 +290,6 @@ export default function Home() {
               </Button>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-12">
               <div className="text-center p-4 rounded-lg bg-white/30 backdrop-blur-sm border border-white/20 shadow-md">
                 <div className="text-3xl font-bold text-primary">16.0</div>
@@ -231,7 +312,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="py-20 px-4 bg-white/50 relative z-10">
         <div className="container mx-auto">
           <div className="text-center mb-16">
@@ -336,7 +416,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-r from-primary to-accent text-white relative z-10 shadow-2xl">
         <div className="container mx-auto text-center">
           <div className="max-w-3xl mx-auto space-y-8">
@@ -358,7 +437,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-12 px-4 bg-muted/50 relative z-10">
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
