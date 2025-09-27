@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
@@ -19,8 +19,8 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
   const [meatSlider, setMeatSlider] = useState(0)
   const [shoppingSlider, setShoppingSlider] = useState(0)
 
-  const createModifiedInputs = (): CarbonInputs => {
-    const modifiedInputs = { ...originalInputs }
+  const modifiedResult = useMemo(() => {
+    const modifiedInputs: CarbonInputs = { ...originalInputs }
 
     // Apply renewable energy changes
     if (modifiedInputs.energyDetails) {
@@ -30,48 +30,54 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
       }
     }
 
-    // Apply driving reduction
-    if (drivingSlider > 0) {
-      modifiedInputs.commute = originalInputs.commute.map((transport) => {
-        if (transport.mode.toLowerCase().includes("car") || transport.mode.toLowerCase().includes("drive")) {
+    // Apply driving reduction - fix for all transport modes
+    if (drivingSlider > 0 && modifiedInputs.commute) {
+      modifiedInputs.commute = modifiedInputs.commute.map((transport) => {
+        if (
+          transport.mode.toLowerCase().includes("car") ||
+          transport.mode.toLowerCase().includes("drive") ||
+          transport.mode.toLowerCase().includes("suv") ||
+          transport.mode.toLowerCase().includes("truck")
+        ) {
           return {
             ...transport,
-            miles: transport.miles * (1 - drivingSlider / 100),
+            miles: Math.max(0, transport.miles * (1 - drivingSlider / 100)),
           }
         }
         return transport
       })
     }
 
-    // Apply meat reduction
+    // Apply meat reduction - fix for all meat types
     if (meatSlider > 0 && modifiedInputs.dietDetails) {
-      const originalBeef = originalInputs.dietDetails?.beefServingsPerWeek || 0
-      const originalPork = originalInputs.dietDetails?.porkServingsPerWeek || 0
-      const originalChicken = originalInputs.dietDetails?.chickenServingsPerWeek || 0
-      const originalLamb = originalInputs.dietDetails?.lambServingsPerWeek || 0
-
+      const reductionFactor = 1 - meatSlider / 100
       modifiedInputs.dietDetails = {
         ...modifiedInputs.dietDetails,
-        beefServingsPerWeek: originalBeef * (1 - meatSlider / 100),
-        porkServingsPerWeek: originalPork * (1 - meatSlider / 100),
-        chickenServingsPerWeek: originalChicken * (1 - meatSlider / 100),
-        lambServingsPerWeek: originalLamb * (1 - meatSlider / 100),
+        beefServingsPerWeek: Math.max(0, (originalInputs.dietDetails?.beefServingsPerWeek || 0) * reductionFactor),
+        porkServingsPerWeek: Math.max(0, (originalInputs.dietDetails?.porkServingsPerWeek || 0) * reductionFactor),
+        chickenServingsPerWeek: Math.max(
+          0,
+          (originalInputs.dietDetails?.chickenServingsPerWeek || 0) * reductionFactor,
+        ),
+        lambServingsPerWeek: Math.max(0, (originalInputs.dietDetails?.lambServingsPerWeek || 0) * reductionFactor),
       }
     }
 
-    // Apply shopping reduction
-    if (shoppingSlider > 0) {
+    // Apply shopping reduction - fix for all shopping categories
+    if (shoppingSlider > 0 && modifiedInputs.shopping) {
+      const reductionFactor = 1 - shoppingSlider / 100
       modifiedInputs.shopping = {
-        clothingSpend: originalInputs.shopping.clothingSpend * (1 - shoppingSlider / 100),
-        electronicsSpend: originalInputs.shopping.electronicsSpend * (1 - shoppingSlider / 100),
-        generalSpend: originalInputs.shopping.generalSpend * (1 - shoppingSlider / 100),
+        clothingSpend: Math.max(0, originalInputs.shopping.clothingSpend * reductionFactor),
+        electronicsSpend: Math.max(0, originalInputs.shopping.electronicsSpend * reductionFactor),
+        generalSpend: Math.max(0, originalInputs.shopping.generalSpend * reductionFactor),
       }
     }
 
-    return modifiedInputs
-  }
-
-  const modifiedResult = calculateCarbonFootprint(createModifiedInputs())
+    console.log("[v0] Modified inputs:", modifiedInputs)
+    const result = calculateCarbonFootprint(modifiedInputs)
+    console.log("[v0] Modified result:", result)
+    return result
+  }, [originalInputs, renewableSlider, drivingSlider, meatSlider, shoppingSlider])
 
   const scenarios = [
     {
@@ -83,6 +89,7 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
       maxValue: 100,
       unit: "%",
       onChange: setRenewableSlider,
+      color: "text-green-600",
     },
     {
       id: "reduce_driving",
@@ -93,6 +100,7 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
       maxValue: 100,
       unit: "%",
       onChange: setDrivingSlider,
+      color: "text-blue-600",
     },
     {
       id: "reduce_meat",
@@ -103,6 +111,7 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
       maxValue: 100,
       unit: "%",
       onChange: setMeatSlider,
+      color: "text-orange-600",
     },
     {
       id: "reduce_shopping",
@@ -110,9 +119,10 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
       icon: <ShoppingBag className="w-5 h-5" />,
       description: "Reduce overall spending by percentage",
       currentValue: shoppingSlider,
-      maxValue: 50,
+      maxValue: 80,
       unit: "%",
       onChange: setShoppingSlider,
+      color: "text-purple-600",
     },
   ]
 
@@ -124,6 +134,60 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
     setDrivingSlider(0)
     setMeatSlider(0)
     setShoppingSlider(0)
+  }
+
+  const getScenarioImpact = (scenarioId: string, value: number) => {
+    if (value === 0) return 0
+
+    const tempInputs = { ...originalInputs }
+
+    switch (scenarioId) {
+      case "renewable_energy":
+        if (tempInputs.energyDetails) {
+          tempInputs.energyDetails.renewablePercent = value
+        }
+        break
+      case "reduce_driving":
+        if (tempInputs.commute) {
+          tempInputs.commute = tempInputs.commute.map((transport) => {
+            if (
+              transport.mode.toLowerCase().includes("car") ||
+              transport.mode.toLowerCase().includes("drive") ||
+              transport.mode.toLowerCase().includes("suv") ||
+              transport.mode.toLowerCase().includes("truck")
+            ) {
+              return { ...transport, miles: transport.miles * (1 - value / 100) }
+            }
+            return transport
+          })
+        }
+        break
+      case "reduce_meat":
+        if (tempInputs.dietDetails) {
+          const factor = 1 - value / 100
+          tempInputs.dietDetails = {
+            ...tempInputs.dietDetails,
+            beefServingsPerWeek: (originalInputs.dietDetails?.beefServingsPerWeek || 0) * factor,
+            porkServingsPerWeek: (originalInputs.dietDetails?.porkServingsPerWeek || 0) * factor,
+            chickenServingsPerWeek: (originalInputs.dietDetails?.chickenServingsPerWeek || 0) * factor,
+            lambServingsPerWeek: (originalInputs.dietDetails?.lambServingsPerWeek || 0) * factor,
+          }
+        }
+        break
+      case "reduce_shopping":
+        if (tempInputs.shopping) {
+          const factor = 1 - value / 100
+          tempInputs.shopping = {
+            clothingSpend: originalInputs.shopping.clothingSpend * factor,
+            electronicsSpend: originalInputs.shopping.electronicsSpend * factor,
+            generalSpend: originalInputs.shopping.generalSpend * factor,
+          }
+        }
+        break
+    }
+
+    const tempResult = calculateCarbonFootprint(tempInputs)
+    return originalResult.annual.total - tempResult.annual.total
   }
 
   return (
@@ -139,71 +203,110 @@ export function WhatIfSliders({ originalInputs, originalResult }: WhatIfSlidersP
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Impact Summary */}
-        <div className="p-4 rounded-lg bg-muted/50 border">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-medium text-foreground">Potential Impact</span>
+        <div className="p-6 rounded-lg bg-gradient-to-r from-muted/50 to-muted/30 border-2 border-muted">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-semibold text-foreground text-lg">Combined Impact</span>
             <div className="flex items-center gap-2">
               {totalReduction > 0 ? (
-                <TrendingDown className="w-4 h-4 text-green-600" />
-              ) : (
-                <TrendingUp className="w-4 h-4 text-red-600" />
-              )}
-              <Badge variant={totalReduction > 0 ? "default" : "destructive"}>
-                {totalReduction > 0 ? "-" : "+"}
+                <TrendingDown className="w-5 h-5 text-green-600" />
+              ) : totalReduction < 0 ? (
+                <TrendingUp className="w-5 h-5 text-red-600" />
+              ) : null}
+              <Badge
+                variant={totalReduction > 0 ? "default" : totalReduction < 0 ? "destructive" : "secondary"}
+                className="text-sm px-3 py-1"
+              >
+                {totalReduction > 0 ? "-" : totalReduction < 0 ? "+" : ""}
                 {Math.abs(totalReduction).toFixed(0)} kg CO₂e/year
               </Badge>
             </div>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground mb-2">
             {percentageReduction > 0 ? (
-              <>Reduction of {percentageReduction.toFixed(1)}% from your current footprint</>
+              <>🎉 Reduction of {percentageReduction.toFixed(1)}% from your current footprint</>
+            ) : percentageReduction < 0 ? (
+              <>⚠️ This would increase your footprint by {Math.abs(percentageReduction).toFixed(1)}%</>
             ) : (
-              <>This would increase your footprint by {Math.abs(percentageReduction).toFixed(1)}%</>
+              <>No changes applied yet - adjust the sliders to see potential impacts</>
             )}
           </div>
-          <div className="mt-2 text-lg font-semibold text-foreground">
-            New Annual Total: {(modifiedResult.annual.total / 1000).toFixed(1)} tonnes CO₂e
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-muted-foreground">Original:</div>
+              <div className="text-lg font-semibold text-foreground">
+                {(originalResult.annual.total / 1000).toFixed(1)} tonnes CO₂e
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-muted-foreground">New Total:</div>
+              <div
+                className={`text-lg font-semibold ${
+                  totalReduction > 0 ? "text-green-600" : totalReduction < 0 ? "text-red-600" : "text-foreground"
+                }`}
+              >
+                {(modifiedResult.annual.total / 1000).toFixed(1)} tonnes CO₂e
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Scenario Sliders */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {scenarios.map((scenario) => (
-            <Card key={scenario.id} className="p-4 border-2">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                  {scenario.icon}
+          {scenarios.map((scenario) => {
+            const scenarioImpact = getScenarioImpact(scenario.id, scenario.currentValue)
+            return (
+              <Card key={scenario.id} className="p-4 border-2 hover:border-primary/50 transition-colors">
+                <div className="flex items-center gap-3 mb-4">
+                  <div
+                    className={`w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center ${scenario.color}`}
+                  >
+                    {scenario.icon}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-foreground">{scenario.title}</div>
+                    <div className="text-sm text-muted-foreground">{scenario.description}</div>
+                  </div>
+                  {scenarioImpact > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      -{scenarioImpact.toFixed(0)} kg/yr
+                    </Badge>
+                  )}
                 </div>
-                <div>
-                  <div className="font-medium text-foreground">{scenario.title}</div>
-                  <div className="text-sm text-muted-foreground">{scenario.description}</div>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Current:{" "}
+                      <span className="font-medium text-foreground">
+                        {scenario.currentValue.toFixed(0)}
+                        {scenario.unit}
+                      </span>
+                    </span>
+                    <span className="text-muted-foreground">
+                      Max: {scenario.maxValue}
+                      {scenario.unit}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[scenario.currentValue]}
+                    onValueChange={([value]) => scenario.onChange(value)}
+                    max={scenario.maxValue}
+                    step={scenario.maxValue >= 100 ? 5 : 1}
+                    className="mt-2"
+                  />
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-primary/50 to-primary transition-all duration-300"
+                      style={{ width: `${(scenario.currentValue / scenario.maxValue) * 100}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm text-foreground">
-                  <span>
-                    Current: {scenario.currentValue.toFixed(0)}
-                    {scenario.unit}
-                  </span>
-                  <span>
-                    Max: {scenario.maxValue}
-                    {scenario.unit}
-                  </span>
-                </div>
-                <Slider
-                  value={[scenario.currentValue]}
-                  onValueChange={([value]) => scenario.onChange(value)}
-                  max={scenario.maxValue}
-                  step={scenario.maxValue === 100 ? 5 : 1}
-                  className="mt-2"
-                />
-              </div>
-            </Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
 
         {/* Reset Button */}
-        <div className="text-center">
+        <div className="text-center pt-4">
           <Button
             onClick={resetAllScenarios}
             variant="outline"

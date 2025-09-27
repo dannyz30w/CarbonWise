@@ -28,22 +28,57 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
   const [showMethodology, setShowMethodology] = useState(false)
 
   const categoryData = [
-    { name: "Transportation", value: result.annual.transport / 1000, color: COLORS[0] },
-    { name: "Flights", value: result.annual.flights / 1000, color: COLORS[1] },
-    { name: "Diet", value: result.annual.diet / 1000, color: COLORS[2] },
-    { name: "Energy", value: result.annual.energy / 1000, color: COLORS[3] },
-    { name: "Shopping", value: result.annual.shopping / 1000, color: COLORS[4] },
-    { name: "Waste", value: result.annual.waste / 1000, color: COLORS[5] },
-    { name: "Water", value: result.annual.water / 1000, color: COLORS[6] },
+    {
+      name: "Transportation",
+      value: Number((result.annual.transport / 1000).toFixed(2)),
+      color: "#10B981",
+      percentage: ((result.annual.transport / result.annual.total) * 100).toFixed(1),
+    },
+    {
+      name: "Flights",
+      value: Number((result.annual.flights / 1000).toFixed(2)),
+      color: "#3B82F6",
+      percentage: ((result.annual.flights / result.annual.total) * 100).toFixed(1),
+    },
+    {
+      name: "Diet",
+      value: Number((result.annual.diet / 1000).toFixed(2)),
+      color: "#F59E0B",
+      percentage: ((result.annual.diet / result.annual.total) * 100).toFixed(1),
+    },
+    {
+      name: "Energy",
+      value: Number((result.annual.energy / 1000).toFixed(2)),
+      color: "#EF4444",
+      percentage: ((result.annual.energy / result.annual.total) * 100).toFixed(1),
+    },
+    {
+      name: "Shopping",
+      value: Number((result.annual.shopping / 1000).toFixed(2)),
+      color: "#8B5CF6",
+      percentage: ((result.annual.shopping / result.annual.total) * 100).toFixed(1),
+    },
+    {
+      name: "Waste",
+      value: Number((result.annual.waste / 1000).toFixed(2)),
+      color: "#EC4899",
+      percentage: ((result.annual.waste / result.annual.total) * 100).toFixed(1),
+    },
+    {
+      name: "Water",
+      value: Number((result.annual.water / 1000).toFixed(2)),
+      color: "#06B6D4",
+      percentage: ((result.annual.water / result.annual.total) * 100).toFixed(1),
+    },
   ]
-    .filter((item) => item.value > 0)
+    .filter((item) => item.value > 0.01) // Only show categories with meaningful emissions
     .sort((a, b) => b.value - a.value)
 
   const comparisonData = [
-    { name: "Your Footprint", value: result.annual.total / 1000, color: COLORS[0] },
-    { name: "US Average", value: 16.0, color: COLORS[3] },
-    { name: "Global Average", value: 4.8, color: COLORS[1] },
-    { name: "Paris Target", value: 2.3, color: COLORS[2] },
+    { name: "Your Footprint", value: Number((result.annual.total / 1000).toFixed(1)), color: "#10B981" },
+    { name: "US Average", value: 16.0, color: "#EF4444" },
+    { name: "Global Average", value: 4.8, color: "#3B82F6" },
+    { name: "Paris Target", value: 2.3, color: "#F59E0B" },
   ]
 
   const saveCalculation = () => {
@@ -168,30 +203,44 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
             <CardDescription>Your carbon footprint by category (tonnes CO₂e/year)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={categoryData} layout="horizontal" margin={{ left: 80, right: 20, top: 20, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={categoryData} layout="horizontal" margin={{ left: 100, right: 30, top: 20, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                 <XAxis
                   type="number"
                   tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                  tickFormatter={(value) => `${value.toFixed(1)}t`}
+                  tickFormatter={(value) => `${value}t`}
+                  stroke="hsl(var(--foreground))"
                 />
                 <YAxis
                   type="category"
                   dataKey="name"
                   tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                  width={80}
+                  width={100}
+                  stroke="hsl(var(--foreground))"
                 />
                 <Tooltip
-                  formatter={(value: number) => [`${value.toFixed(1)} tonnes CO₂e`, "Annual Emissions"]}
+                  formatter={(value: number, name: string, props: any) => [
+                    `${Number(value).toFixed(1)} tonnes CO₂e (${props.payload.percentage}%)`,
+                    "Annual Emissions",
+                  ]}
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
                     color: "hsl(var(--foreground))",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                  }}
+                  labelStyle={{
+                    color: "hsl(var(--foreground))",
+                    fontWeight: "600",
                   }}
                 />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={(entry: any) => entry.color}>
+                  {categoryData.map((entry, index) => (
+                    <Bar key={`bar-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -203,31 +252,41 @@ export function ResultsDashboard({ result, onReset, inputs }: ResultsDashboardPr
             <CardDescription>How you compare to global averages (tonnes CO₂e/year)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={comparisonData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                 <XAxis
                   dataKey="name"
                   tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
                   angle={-45}
                   textAnchor="end"
                   height={80}
+                  stroke="hsl(var(--foreground))"
                 />
-                <YAxis tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} />
+                <YAxis tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }} stroke="hsl(var(--foreground))" />
                 <Tooltip
-                  formatter={(value: number, name: string) => [`${value.toFixed(1)} tonnes CO₂e`, "Annual Emissions"]}
+                  formatter={(value: number) => [`${Number(value).toFixed(1)} tonnes CO₂e`, "Annual Emissions"]}
                   contentStyle={{
                     backgroundColor: "hsl(var(--card))",
                     border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
                     color: "hsl(var(--foreground))",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
                   }}
                   labelStyle={{
                     color: "hsl(var(--foreground))",
+                    fontWeight: "600",
                   }}
-                  cursor={{ fill: "hsl(var(--muted))" }}
+                  cursor={{
+                    fill: "hsl(var(--muted))",
+                    opacity: 0.1,
+                  }}
                 />
-                <Bar dataKey="value" fill="hsl(var(--primary))" />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]} stroke="hsl(var(--border))" strokeWidth={1}>
+                  {comparisonData.map((entry, index) => (
+                    <Bar key={`comparison-bar-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

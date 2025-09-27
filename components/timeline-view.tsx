@@ -10,17 +10,31 @@ export function TimelineView() {
   const savedCalculations = CalculationStorage.getAllCalculations()
 
   const timelineData = useMemo(() => {
-    return savedCalculations
+    const data = savedCalculations
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .map((calc) => ({
-        date: new Date(calc.date).toLocaleDateString(),
-        fullDate: calc.date,
-        total: calc.result.annual.total / 1000, // Convert to tonnes
-        transport: calc.result.annual.transport / 1000,
-        energy: calc.result.annual.energy / 1000,
-        diet: calc.result.annual.diet / 1000,
-        name: calc.name,
-      }))
+      .map((calc, index) => {
+        console.log("[v0] Processing calculation:", calc.name, calc.result?.annual)
+
+        return {
+          date: new Date(calc.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: new Date(calc.date).getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
+          }),
+          fullDate: calc.date,
+          total: Number((calc.result?.annual?.total || 0) / 1000), // Convert to tonnes
+          transport: Number((calc.result?.annual?.transport || 0) / 1000),
+          energy: Number((calc.result?.annual?.energy || 0) / 1000),
+          diet: Number((calc.result?.annual?.diet || 0) / 1000),
+          flights: Number((calc.result?.annual?.flights || 0) / 1000),
+          shopping: Number((calc.result?.annual?.shopping || 0) / 1000),
+          name: calc.name,
+          index: index + 1,
+        }
+      })
+
+    console.log("[v0] Timeline data processed:", data)
+    return data
   }, [savedCalculations])
 
   if (timelineData.length < 2) {
@@ -37,6 +51,7 @@ export function TimelineView() {
           <div className="text-muted-foreground">
             <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>Your carbon footprint timeline will appear here once you have multiple saved calculations.</p>
+            <p className="text-xs mt-2">Tip: Try different scenarios and save each one to track your progress!</p>
           </div>
         </CardContent>
       </Card>
@@ -88,19 +103,21 @@ export function TimelineView() {
         </div>
 
         {/* Timeline Chart */}
-        <div className="h-80">
+        <div className="h-96">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={timelineData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
               <XAxis
                 dataKey="date"
                 tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
                 angle={-45}
                 textAnchor="end"
                 height={60}
+                stroke="hsl(var(--foreground))"
               />
               <YAxis
                 tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                stroke="hsl(var(--foreground))"
                 label={{
                   value: "Tonnes CO₂e/year",
                   angle: -90,
@@ -110,7 +127,7 @@ export function TimelineView() {
               />
               <Tooltip
                 formatter={(value: number, name: string) => [
-                  `${value.toFixed(1)} tonnes CO₂e`,
+                  `${Number(value).toFixed(1)} tonnes CO₂e`,
                   name === "total"
                     ? "Total Footprint"
                     : name === "transport"
@@ -119,7 +136,11 @@ export function TimelineView() {
                         ? "Energy"
                         : name === "diet"
                           ? "Diet"
-                          : name,
+                          : name === "flights"
+                            ? "Flights"
+                            : name === "shopping"
+                              ? "Shopping"
+                              : name,
                 ]}
                 labelFormatter={(label, payload) => {
                   const data = payload?.[0]?.payload
@@ -130,44 +151,78 @@ export function TimelineView() {
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "8px",
                   color: "hsl(var(--foreground))",
+                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                }}
+                labelStyle={{
+                  color: "hsl(var(--foreground))",
+                  fontWeight: "600",
                 }}
               />
-              <Legend />
+              <Legend
+                wrapperStyle={{
+                  color: "hsl(var(--foreground))",
+                  fontSize: "14px",
+                }}
+              />
               <Line
                 type="monotone"
                 dataKey="total"
-                stroke="hsl(var(--primary))"
+                stroke="#10B981"
                 strokeWidth={4}
-                dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 6 }}
-                activeDot={{ r: 8, stroke: "hsl(var(--primary))", strokeWidth: 2 }}
+                dot={{ fill: "#10B981", strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8, stroke: "#10B981", strokeWidth: 2, fill: "#10B981" }}
                 name="Total Footprint"
+                connectNulls={false}
               />
               <Line
                 type="monotone"
                 dataKey="transport"
-                stroke="#10B981"
-                strokeWidth={2}
-                strokeDasharray="8 4"
-                dot={{ fill: "#10B981", strokeWidth: 1, r: 4 }}
-                name="Transportation"
-              />
-              <Line
-                type="monotone"
-                dataKey="energy"
                 stroke="#3B82F6"
                 strokeWidth={2}
                 strokeDasharray="8 4"
                 dot={{ fill: "#3B82F6", strokeWidth: 1, r: 4 }}
-                name="Energy"
+                name="Transportation"
+                connectNulls={false}
               />
               <Line
                 type="monotone"
-                dataKey="diet"
+                dataKey="energy"
                 stroke="#F59E0B"
                 strokeWidth={2}
                 strokeDasharray="8 4"
                 dot={{ fill: "#F59E0B", strokeWidth: 1, r: 4 }}
+                name="Energy"
+                connectNulls={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="diet"
+                stroke="#EF4444"
+                strokeWidth={2}
+                strokeDasharray="8 4"
+                dot={{ fill: "#EF4444", strokeWidth: 1, r: 4 }}
                 name="Diet"
+                connectNulls={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="flights"
+                stroke="#8B5CF6"
+                strokeWidth={2}
+                strokeDasharray="8 4"
+                dot={{ fill: "#8B5CF6", strokeWidth: 1, r: 4 }}
+                name="Flights"
+                connectNulls={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="shopping"
+                stroke="#EC4899"
+                strokeWidth={2}
+                strokeDasharray="8 4"
+                dot={{ fill: "#EC4899", strokeWidth: 1, r: 4 }}
+                name="Shopping"
+                connectNulls={false}
               />
             </LineChart>
           </ResponsiveContainer>
