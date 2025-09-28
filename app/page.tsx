@@ -7,7 +7,20 @@ import { CalculationWizard } from "@/components/calculation-wizard"
 import { ResultsDashboard } from "@/components/results-dashboard"
 import { SavedCalculations } from "@/components/saved-calculations"
 import { calculateCarbonFootprint, type CarbonInputs, type CarbonResult } from "@/lib/carbon-calculator"
-import { Leaf, Calculator, TrendingDown, Users, Globe, Target, History, Sparkles } from "lucide-react"
+import {
+  Leaf,
+  Calculator,
+  TrendingDown,
+  Users,
+  Globe,
+  Target,
+  History,
+  Sparkles,
+  ArrowRight,
+  CheckCircle,
+  BarChart3,
+  Zap,
+} from "lucide-react"
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<"landing" | "wizard" | "results" | "saved">("landing")
@@ -70,22 +83,28 @@ export default function Home() {
 
   if (currentView === "saved") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50 p-6 relative overflow-hidden">
+      <div className="min-h-screen gradient-surface relative overflow-hidden">
         <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full animate-pulse"></div>
+          <div className="absolute top-20 left-10 w-40 h-40 bg-primary/10 rounded-full animate-float blur-xl"></div>
           <div
-            className="absolute top-40 right-20 w-24 h-24 bg-accent/5 rounded-full animate-bounce"
-            style={{ animationDelay: "1s" }}
-          ></div>
-          <div
-            className="absolute bottom-40 left-1/4 w-20 h-20 bg-success/5 rounded-full animate-pulse"
+            className="absolute top-40 right-20 w-32 h-32 bg-accent/10 rounded-full animate-float blur-xl"
             style={{ animationDelay: "2s" }}
           ></div>
+          <div
+            className="absolute bottom-40 left-1/4 w-28 h-28 bg-chart-5/10 rounded-full animate-float blur-xl"
+            style={{ animationDelay: "4s" }}
+          ></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 opacity-5">
+            <div
+              className="w-full h-full rounded-full border border-primary/20 animate-spin"
+              style={{ animationDuration: "30s" }}
+            ></div>
+          </div>
         </div>
 
-        <div className="max-w-7xl mx-auto relative z-10">
+        <div className="max-w-7xl mx-auto relative z-10 p-6">
           <div className="mb-8 flex items-center justify-between">
-            <Button variant="outline" onClick={handleReset}>
+            <Button variant="outline" onClick={handleReset} className="glass-premium hover-lift bg-transparent">
               ← Back to Home
             </Button>
           </div>
@@ -95,60 +114,54 @@ export default function Home() {
           />
 
           {comparisonData && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <Card className="max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-                <CardHeader>
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <Card className="max-w-6xl w-full max-h-[85vh] overflow-y-auto glass-card animate-slide-up">
+                <CardHeader className="border-b border-border/50">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl">Calculation Comparison</CardTitle>
-                    <Button variant="outline" onClick={() => setComparisonData(null)}>
+                    <div>
+                      <CardTitle className="text-3xl gradient-text">Calculation Comparison</CardTitle>
+                      <p className="text-muted-foreground mt-2">
+                        Detailed analysis of your carbon footprint calculations
+                      </p>
+                    </div>
+                    <Button variant="outline" onClick={() => setComparisonData(null)} className="hover-lift">
                       ✕
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <CardContent className="p-8">
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {comparisonData.map((calc, index) => (
-                        <Card key={index} className="border-2">
-                          <CardHeader className="pb-3">
-                            <CardTitle className="text-lg">{calc.name}</CardTitle>
+                        <Card key={index} className="glass-card hover-lift">
+                          <CardHeader className="pb-4">
+                            <CardTitle className="text-xl">{calc.name}</CardTitle>
                             <p className="text-sm text-muted-foreground">{calc.date}</p>
                           </CardHeader>
                           <CardContent>
-                            <div className="space-y-2">
-                              <div className="text-center mb-4">
-                                <div className="text-2xl font-bold text-primary">{calc.total.toFixed(1)}</div>
-                                <div className="text-sm text-muted-foreground">tonnes CO₂e/year</div>
+                            <div className="space-y-4">
+                              <div className="text-center p-4 rounded-xl bg-primary/5">
+                                <div className="text-3xl font-bold gradient-text">{calc.total.toFixed(1)}</div>
+                                <div className="text-sm text-muted-foreground font-medium">tonnes CO₂e/year</div>
                               </div>
-                              <div className="space-y-1 text-sm">
-                                <div className="flex justify-between">
-                                  <span>Transport:</span>
-                                  <span className="font-medium">{calc.transport.toFixed(1)}t</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Energy:</span>
-                                  <span className="font-medium">{calc.energy.toFixed(1)}t</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Diet:</span>
-                                  <span className="font-medium">{calc.diet.toFixed(1)}t</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Flights:</span>
-                                  <span className="font-medium">{calc.flights.toFixed(1)}t</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Shopping:</span>
-                                  <span className="font-medium">{calc.shopping.toFixed(1)}t</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Waste:</span>
-                                  <span className="font-medium">{calc.waste.toFixed(1)}t</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Water:</span>
-                                  <span className="font-medium">{calc.water.toFixed(1)}t</span>
-                                </div>
+                              <div className="space-y-3 text-sm">
+                                {[
+                                  { label: "Transport", value: calc.transport, color: "text-chart-1" },
+                                  { label: "Energy", value: calc.energy, color: "text-chart-2" },
+                                  { label: "Diet", value: calc.diet, color: "text-chart-3" },
+                                  { label: "Flights", value: calc.flights, color: "text-chart-4" },
+                                  { label: "Shopping", value: calc.shopping, color: "text-chart-5" },
+                                  { label: "Waste", value: calc.waste, color: "text-warning" },
+                                  { label: "Water", value: calc.water, color: "text-success" },
+                                ].map((item, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex justify-between items-center p-2 rounded-lg bg-muted/30"
+                                  >
+                                    <span className="font-medium">{item.label}:</span>
+                                    <span className={`font-bold ${item.color}`}>{item.value.toFixed(1)}t</span>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           </CardContent>
@@ -157,16 +170,19 @@ export default function Home() {
                     </div>
 
                     {comparisonData.length === 2 && (
-                      <Card className="bg-muted/50">
+                      <Card className="glass-premium">
                         <CardHeader>
-                          <CardTitle className="text-lg">Difference Analysis</CardTitle>
+                          <CardTitle className="text-2xl flex items-center gap-2">
+                            <BarChart3 className="w-6 h-6 text-primary" />
+                            Difference Analysis
+                          </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="text-center">
-                            <div className="text-xl font-bold">
+                          <div className="text-center p-6 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10">
+                            <div className="text-4xl font-bold gradient-text mb-2">
                               {Math.abs(comparisonData[0].total - comparisonData[1].total).toFixed(1)} tonnes CO₂e/year
                             </div>
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-lg text-muted-foreground">
                               {comparisonData[0].total > comparisonData[1].total
                                 ? `${comparisonData[1].name} has ${Math.abs(comparisonData[0].total - comparisonData[1].total).toFixed(1)}t lower emissions`
                                 : `${comparisonData[0].name} has ${Math.abs(comparisonData[0].total - comparisonData[1].total).toFixed(1)}t lower emissions`}
@@ -186,68 +202,70 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50 relative overflow-hidden">
+    <div className="min-h-screen gradient-surface relative overflow-hidden">
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/5 rounded-full animate-pulse"></div>
+        <div className="absolute top-20 left-10 w-40 h-40 bg-primary/10 rounded-full animate-float blur-xl"></div>
         <div
-          className="absolute top-40 right-20 w-24 h-24 bg-accent/5 rounded-full animate-bounce"
-          style={{ animationDelay: "1s" }}
-        ></div>
-        <div
-          className="absolute bottom-40 left-1/4 w-20 h-20 bg-success/5 rounded-full animate-pulse"
+          className="absolute top-40 right-20 w-32 h-32 bg-accent/10 rounded-full animate-float blur-xl"
           style={{ animationDelay: "2s" }}
         ></div>
         <div
-          className="absolute bottom-20 right-1/3 w-28 h-28 bg-warning/5 rounded-full animate-bounce"
-          style={{ animationDelay: "3s" }}
+          className="absolute bottom-40 left-1/4 w-28 h-28 bg-chart-5/10 rounded-full animate-float blur-xl"
+          style={{ animationDelay: "4s" }}
+        ></div>
+        <div
+          className="absolute bottom-20 right-1/3 w-36 h-36 bg-warning/10 rounded-full animate-float blur-xl"
+          style={{ animationDelay: "6s" }}
         ></div>
 
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 opacity-5">
           <div
-            className="w-full h-full rounded-full border-2 border-primary animate-spin"
-            style={{ animationDuration: "20s" }}
+            className="w-full h-full rounded-full border border-primary/20 animate-spin"
+            style={{ animationDuration: "30s" }}
           ></div>
           <div
-            className="absolute inset-8 rounded-full border border-accent animate-spin"
-            style={{ animationDuration: "15s", animationDirection: "reverse" }}
-          ></div>
-          <div
-            className="absolute inset-16 rounded-full border border-success animate-spin"
-            style={{ animationDuration: "10s" }}
+            className="absolute inset-8 rounded-full border border-accent/20 animate-spin"
+            style={{ animationDuration: "20s", animationDirection: "reverse" }}
           ></div>
         </div>
 
-        <div
-          className="absolute top-1/4 left-1/4 w-2 h-2 bg-primary/20 rounded-full animate-bounce"
-          style={{ animationDelay: "0.5s", animationDuration: "3s" }}
-        ></div>
-        <div
-          className="absolute top-3/4 right-1/4 w-3 h-3 bg-accent/20 rounded-full animate-bounce"
-          style={{ animationDelay: "1.5s", animationDuration: "4s" }}
-        ></div>
-        <div
-          className="absolute top-1/3 right-1/3 w-1 h-1 bg-success/30 rounded-full animate-pulse"
-          style={{ animationDelay: "2.5s" }}
-        ></div>
+        {/* Floating particles */}
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className={`absolute w-2 h-2 bg-primary/20 rounded-full animate-float blur-sm`}
+            style={{
+              top: `${20 + i * 15}%`,
+              left: `${10 + i * 12}%`,
+              animationDelay: `${i * 0.8}s`,
+              animationDuration: `${4 + i}s`,
+            }}
+          />
+        ))}
       </div>
 
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 relative">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-border/50 glass-premium sticky top-0 z-50 relative">
+        <div className="container mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-                <Leaf className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-lg animate-glow">
+                <Leaf className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-foreground">CARBONWISE</span>
-              <span className="text-sm text-muted-foreground ml-2">by Danny Zheng</span>
-              <Sparkles className="w-4 h-4 text-accent animate-pulse" />
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-bold gradient-text">CARBONWISE</span>
+                <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>by</span>
+                  <span className="font-semibold text-foreground">Danny Zheng</span>
+                  <Sparkles className="w-4 h-4 text-accent animate-pulse" />
+                </div>
+              </div>
             </div>
-            <nav className="hidden md:flex items-center gap-6">
+            <nav className="hidden md:flex items-center gap-4">
               <Button
-                variant="default"
+                variant="outline"
                 size="sm"
                 onClick={handleViewSaved}
-                className="bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 shadow-md text-black"
+                className="glass-premium hover-lift button-premium bg-transparent"
               >
                 <History className="w-4 h-4 mr-2" />
                 My Progress
@@ -257,200 +275,207 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="py-20 px-4 relative z-10">
+      <section className="py-24 px-6 relative z-10">
         <div className="container mx-auto text-center">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent animate-gradient">
-                Track Your Carbon Impact
+          <div className="max-w-5xl mx-auto space-y-12">
+            <div className="space-y-8 animate-slide-up">
+              <h1 className="gradient-text animate-gradient-shift text-balance">
+                Calculate your carbon footprint with scientific precision
               </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto text-balance">
-                Calculate your personal carbon footprint with scientific precision. Get personalized recommendations to
-                reduce your environmental impact and contribute to a sustainable future.
+              <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto text-pretty leading-relaxed">
+                Get personalized recommendations to reduce your environmental impact and contribute to a sustainable
+                future. Built with real EPA emission factors and advanced methodologies.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div
+              className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-slide-up"
+              style={{ animationDelay: "0.2s" }}
+            >
               <Button
                 size="lg"
-                className="text-lg px-8 py-6 animate-pulse-green shadow-lg"
+                className="text-lg px-10 py-7 animate-pulse-premium button-premium shadow-2xl"
                 onClick={handleStartCalculation}
               >
-                <Calculator className="w-5 h-5 mr-2" />
+                <Calculator className="w-5 h-5 mr-3" />
                 Calculate My Footprint
+                <ArrowRight className="w-5 h-5 ml-3" />
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="text-lg px-8 py-6 bg-transparent shadow-md hover:shadow-lg transition-shadow"
+                className="text-lg px-10 py-7 glass-premium hover-lift button-premium bg-transparent"
                 onClick={handleViewSaved}
               >
-                <History className="w-5 h-5 mr-2" />
+                <History className="w-5 h-5 mr-3" />
                 View My Progress
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-12">
-              <div className="text-center p-4 rounded-lg bg-white/30 backdrop-blur-sm border border-white/20 shadow-md">
-                <div className="text-3xl font-bold text-primary">16.0</div>
-                <div className="text-sm text-muted-foreground">US Average (tonnes CO₂e/year)</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-white/30 backdrop-blur-sm border border-white/20 shadow-md">
-                <div className="text-3xl font-bold text-accent">4.8</div>
-                <div className="text-sm text-muted-foreground">Global Average (tonnes CO₂e/year)</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-white/30 backdrop-blur-sm border border-white/20 shadow-md">
-                <div className="text-3xl font-bold text-warning">2.3</div>
-                <div className="text-sm text-muted-foreground">Paris Agreement Target</div>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-white/30 backdrop-blur-sm border border-white/20 shadow-md">
-                <div className="text-3xl font-bold text-secondary">50%</div>
-                <div className="text-sm text-muted-foreground">Reduction Needed by 2030</div>
-              </div>
+            <div
+              className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-16 animate-slide-up"
+              style={{ animationDelay: "0.4s" }}
+            >
+              {[
+                { value: "16.0", label: "US Average", sublabel: "tonnes CO₂e/year", color: "from-chart-1 to-chart-2" },
+                {
+                  value: "4.8",
+                  label: "Global Average",
+                  sublabel: "tonnes CO₂e/year",
+                  color: "from-chart-2 to-chart-3",
+                },
+                {
+                  value: "2.3",
+                  label: "Paris Agreement",
+                  sublabel: "Target by 2030",
+                  color: "from-chart-3 to-chart-4",
+                },
+                { value: "50%", label: "Reduction Needed", sublabel: "by 2030", color: "from-chart-4 to-chart-5" },
+              ].map((stat, index) => (
+                <Card key={index} className="glass-card hover-lift text-center p-6">
+                  <div
+                    className={`text-4xl font-bold bg-gradient-to-br ${stat.color} bg-clip-text text-transparent mb-2`}
+                  >
+                    {stat.value}
+                  </div>
+                  <div className="text-sm font-semibold text-foreground mb-1">{stat.label}</div>
+                  <div className="text-xs text-muted-foreground">{stat.sublabel}</div>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-white/50 relative z-10">
+      <section className="py-24 px-6 relative z-10">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Advanced Carbon Calculation</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Built with real EPA emission factors and scientific methodologies for accurate, actionable insights.
+          <div className="text-center mb-20 animate-slide-up">
+            <h2 className="gradient-text mb-6">Advanced Carbon Calculation</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
+              Built with real EPA emission factors and scientific methodologies for accurate, actionable insights that
+              help you make informed decisions about your environmental impact.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="glass animate-float shadow-lg hover:shadow-xl transition-shadow">
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <Calculator className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Comprehensive Analysis</h3>
-                <p className="text-muted-foreground">
-                  Track emissions across transportation, energy, diet, shopping, waste, and water usage with detailed
-                  breakdowns and unit labels.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="glass animate-float shadow-lg hover:shadow-xl transition-shadow"
-              style={{ animationDelay: "0.2s" }}
-            >
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <TrendingDown className="w-6 h-6 text-accent" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">What-If Scenarios</h3>
-                <p className="text-muted-foreground">
-                  Interactive sliders let you preview the impact of different actions before making changes to your
-                  lifestyle.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="glass animate-float shadow-lg hover:shadow-xl transition-shadow"
-              style={{ animationDelay: "0.4s" }}
-            >
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <Target className="w-6 h-6 text-secondary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Progress Tracking</h3>
-                <p className="text-muted-foreground">
-                  Save calculations and view your timeline to track improvements and see your carbon reduction journey.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="glass animate-float shadow-lg hover:shadow-xl transition-shadow"
-              style={{ animationDelay: "0.6s" }}
-            >
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-warning/10 flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <Globe className="w-6 h-6 text-warning" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Regional Accuracy</h3>
-                <p className="text-muted-foreground">
-                  State-specific electricity grid factors and regional adjustments for precise local impact
-                  calculations.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="glass animate-float shadow-lg hover:shadow-xl transition-shadow"
-              style={{ animationDelay: "0.8s" }}
-            >
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-destructive/10 flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <Users className="w-6 h-6 text-destructive" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Regional Accuracy</h3>
-                <p className="text-muted-foreground">
-                  State-specific electricity grid factors and regional adjustments for precise local impact
-                  calculations.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="glass animate-float shadow-lg hover:shadow-xl transition-shadow"
-              style={{ animationDelay: "1.0s" }}
-            >
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-chart-5/10 flex items-center justify-center mx-auto mb-4 shadow-md">
-                  <Leaf className="w-6 h-6 text-chart-5" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Privacy First</h3>
-                <p className="text-muted-foreground">
-                  All calculations performed locally in your browser. No data collection, no tracking, complete privacy.
-                </p>
-              </CardContent>
-            </Card>
+            {[
+              {
+                icon: Calculator,
+                title: "Comprehensive Analysis",
+                description:
+                  "Track emissions across transportation, energy, diet, shopping, waste, and water usage with detailed breakdowns and unit labels.",
+                color: "text-chart-1",
+                delay: "0s",
+              },
+              {
+                icon: TrendingDown,
+                title: "What-If Scenarios",
+                description:
+                  "Interactive sliders let you preview the impact of different actions before making changes to your lifestyle.",
+                color: "text-chart-2",
+                delay: "0.1s",
+              },
+              {
+                icon: Target,
+                title: "Progress Tracking",
+                description:
+                  "Save calculations and view your timeline to track improvements and see your carbon reduction journey.",
+                color: "text-chart-3",
+                delay: "0.2s",
+              },
+              {
+                icon: Globe,
+                title: "Regional Accuracy",
+                description:
+                  "State-specific electricity grid factors and regional adjustments for precise local impact calculations.",
+                color: "text-chart-4",
+                delay: "0.3s",
+              },
+              {
+                icon: Users,
+                title: "Comparison Tools",
+                description:
+                  "Compare multiple calculations side-by-side to understand your progress and identify improvement opportunities.",
+                color: "text-chart-5",
+                delay: "0.4s",
+              },
+              {
+                icon: Zap,
+                title: "Privacy First",
+                description:
+                  "All calculations performed locally in your browser. No data collection, no tracking, complete privacy.",
+                color: "text-success",
+                delay: "0.5s",
+              },
+            ].map((feature, index) => (
+              <Card
+                key={index}
+                className="glass-card hover-lift animate-slide-up"
+                style={{ animationDelay: feature.delay }}
+              >
+                <CardContent className="p-8 text-center">
+                  <div
+                    className={`w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center mx-auto mb-6 shadow-lg`}
+                  >
+                    <feature.icon className={`w-8 h-8 ${feature.color}`} />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-4">{feature.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-gradient-to-r from-primary to-accent text-white relative z-10 shadow-2xl">
-        <div className="container mx-auto text-center">
-          <div className="max-w-3xl mx-auto space-y-8">
-            <h2 className="text-4xl md:text-5xl font-bold">Start Your Climate Journey Today</h2>
-            <p className="text-xl opacity-90">
+      <section className="py-24 px-6 gradient-primary text-white relative z-10 shadow-2xl">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="container mx-auto text-center relative z-10">
+          <div className="max-w-4xl mx-auto space-y-10 animate-slide-up">
+            <h2 className="text-white mb-8">Start Your Climate Journey Today</h2>
+            <p className="text-xl opacity-90 leading-relaxed text-pretty">
               Join thousands of individuals taking action on climate change. Calculate your footprint in under 5 minutes
-              and discover your path to carbon neutrality.
+              and discover your personalized path to carbon neutrality with science-backed recommendations.
             </p>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-shadow"
-              onClick={handleStartCalculation}
-            >
-              <Calculator className="w-5 h-5 mr-2" />
-              Get Started Now
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="text-lg px-10 py-7 shadow-2xl hover:shadow-3xl button-premium"
+                onClick={handleStartCalculation}
+              >
+                <Calculator className="w-5 h-5 mr-3" />
+                Get Started Now
+                <ArrowRight className="w-5 h-5 ml-3" />
+              </Button>
+              <div className="flex items-center gap-2 text-sm opacity-80">
+                <CheckCircle className="w-4 h-4" />
+                <span>Free • No signup required • Privacy focused</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <footer className="py-12 px-4 bg-muted/50 relative z-10">
+      <footer className="py-16 px-6 glass-premium relative z-10">
         <div className="container mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-6 h-6 rounded bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-md">
-              <Leaf className="w-4 h-4 text-white" />
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
+              <Leaf className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold">CARBONWISE</span>
+            <span className="text-xl font-bold gradient-text">CARBONWISE</span>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            Advanced carbon footprint calculator built with scientific precision and privacy in mind.
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed">
+            Advanced carbon footprint calculator built with scientific precision and privacy in mind. Empowering
+            individuals to make informed decisions about their environmental impact.
           </p>
-          <p className="text-xs text-muted-foreground">
-            &copy; 2025 CARBONWISE. Built for the Congressional App Challenge. All emission factors from EPA 2024 data.
-          </p>
+          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+            <span>&copy; 2025 CARBONWISE</span>
+            <span>•</span>
+            <span>Built for Congressional App Challenge</span>
+            <span>•</span>
+            <span>EPA 2024 Data</span>
+          </div>
         </div>
       </footer>
     </div>
